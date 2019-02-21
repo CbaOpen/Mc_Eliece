@@ -1,4 +1,4 @@
-#include "../../inc/ReedSolomon/encryptRS.h"
+#include "../inc/encryptRS.h"
 #include <gmp.h>
 #include <mpfr.h>
 #include <stdlib.h>
