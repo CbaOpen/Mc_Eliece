@@ -308,9 +308,7 @@ void mulPoly(fmpz_mod_poly_t res,fmpz_mod_poly_t op1, fmpz_mod_poly_t op2, fmpz_
 
 
 
-void main(int argc, char** argv){
-	
-
+void test_encryptRS(){
 ////// voir à déclarer de manière global
 
 	//init des tableaux
@@ -405,7 +403,5 @@ void main(int argc, char** argv){
 	fmpz_mod_poly_set_coeff_ui(op2, 0, 13);
 	mulPoly(res,op1,op2,reduc);
 	fmpz_mod_poly_print(res);
-
-
- 
+	printf("\n");
 }
