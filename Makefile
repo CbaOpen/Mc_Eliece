@@ -1,4 +1,4 @@
-PROJECT = MC_ELIECE_Project
+PROJECT = MC_ELIECE_Cryptosystem
 EXE_NAME = mceliece
 
 SRC_PATH = src/
@@ -15,25 +15,19 @@ OBJ = $(SRC:$(SRC_PATH)%.c=$(OBJ_PATH)%.o)
 
 CC = gcc
 INC_FLAGS    = -I$(INC_PATH)
-PROJ_CFLAG   = -c -g3 -Wall
-PROJ_LDFLAGS = -Wall #-lgmp -lm
+PROJ_CFLAG   = -c -g3 -Wall -lflint -lmpfr -lgmp -lpthread -lm
+PROJ_LDFLAGS = -Wall -lflint -lmpfr -lgmp -lpthread -lm
 
-CFLAGS  = $(PROJ_CFLAG) $(INC_FLAGS)
-LDFLAGS = $(PROJ_LDFLAG)
+CFLAGS  = $(INC_FLAGS) $(PROJ_CFLAG)
+LDFLAGS = $(PROJ_LDFLAGS)
 
 ## Lancement ..................................................................:
 
-ARGS = -h
+ARGS =
 
 # Cibles =======================================================================
 
 .PHONY : clean mrproper
-
-## Lancement ..................................................................:
-
-run : compil 
-	@echo "--> Lancement de '$(EXEC)' :"
-	$(EXEC) $(ARGS)
 
 ## Compilation ................................................................:
 
@@ -46,6 +40,12 @@ $(EXEC) : $(OBJ)
 $(OBJ_PATH)%.o : $(SRC_PATH)%.c Makefile
 	@echo "--> Compilation de '$<' :"
 	$(CC) -c $< -o $@ $(CFLAGS)
+
+## Lancement ..................................................................:
+
+run : compil 
+	@echo "--> Lancement de '$(EXEC)' :"
+	$(EXEC) $(ARGS)
 
 ## Dépendances ................................................................:
 
