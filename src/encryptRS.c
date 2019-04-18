@@ -11,8 +11,12 @@
 #include <mpf2mpfr.h>
 #include <flint/fmpz_mod_poly.h>
 
-
-void lookuptab(fmpz_mod_poly_t reduc, fmpz_mod_poly_t* tab,int primitive, int length,fmpz_t* ptoi  ){
+extern fmpz_mod_poly_t reduc;
+extern fmpz_mod_poly_t* tab;
+extern fmpz_t* ptoi;
+extern fmpz_t DEUX;
+extern int gf;
+void lookuptab(){
 	fmpz_t d,ev;
 	fmpz_t tmp;
 	fmpz_init(tmp);
@@ -20,12 +24,12 @@ void lookuptab(fmpz_mod_poly_t reduc, fmpz_mod_poly_t* tab,int primitive, int le
 	fmpz_init_set_ui(d,2);
 	fmpz_mod_poly_set_coeff_ui(tab[0],0,1);
 	fmpz_mod_poly_set_coeff_ui(tab[1],1,1);
-	for(int i=2;i<length;i++){
+	for(int i=2;i<gf;i++){
 		fmpz_mod_poly_mulmod(tab[i] , tab[i-1] , tab[1],reduc);
 
 	}
 	fmpz_set_ui(ptoi[0],0);
-	for(int i=1;i<length;i++){
+	for(int i=1;i<gf;i++){
 		tab[i]->p=16;
 		fmpz_mod_poly_evaluate_fmpz(ev,tab[i],d);
 		fmpz_set_ui(tmp,i);
@@ -42,7 +46,7 @@ void lookuptab(fmpz_mod_poly_t reduc, fmpz_mod_poly_t* tab,int primitive, int le
 
 
 
-void findB(fmpz_mod_poly_t res,fmpz_mod_poly_t A,fmpz_mod_poly_t G,fmpz_t* ptoi,fmpz_mod_poly_t* tab){
+void findB(fmpz_mod_poly_t res,fmpz_mod_poly_t A,fmpz_mod_poly_t G){
 	
 
 	fmpz_t deux;
@@ -161,7 +165,7 @@ void findB(fmpz_mod_poly_t res,fmpz_mod_poly_t A,fmpz_mod_poly_t G,fmpz_t* ptoi,
 
 
 //!\TODO 	globaliser les variables (2t, tcycle )
-void gen_poly(fmpz_mod_poly_t G,fmpz_mod_poly_t* tab,fmpz_t* ptoi,int tt,int tcycle){
+void gen_poly(fmpz_mod_poly_t G,int tt,int tcycle){
 	fmpz_t tmp;
 	fmpz_t tmp2;
 	fmpz_t tmp3;
@@ -233,7 +237,7 @@ void setBinPoly(fmpz_mod_poly_t res,fmpz_t f){
 
 
 
-void mulPoly(fmpz_mod_poly_t res,fmpz_mod_poly_t op1, fmpz_mod_poly_t op2, fmpz_mod_poly_t reduc){
+void mulPoly(fmpz_mod_poly_t res,fmpz_mod_poly_t op1, fmpz_mod_poly_t op2){
 	fmpz_t c1,c2 ,d,tmp,tmp2;
 	fmpz_init_set_ui(d,2);
 	fmpz_init(c1);
@@ -289,32 +293,32 @@ void test_encryptRS(){
 	//init des tableaux
 	fmpz_t deux;
 	fmpz_init_set_ui(deux,2);
-	fmpz_mod_poly_t reduc;
-	fmpz_mod_poly_t* tab=malloc(sizeof(fmpz_mod_poly_t)*16);
-	for(int i=0;i<16;i++){
-		fmpz_mod_poly_init(tab[i],deux);
-	}
-	fmpz_t* ptoi=malloc(sizeof(fmpz_t)*16);
-	for(int i=0;i<16;i++){
-	fmpz_init(ptoi[i]);
-	}
 
+	// fmpz_mod_poly_t reduc;
+	// fmpz_mod_poly_t* tab=malloc(sizeof(fmpz_mod_poly_t)*16);
+	// for(int i=0;i<16;i++){
+	// 	fmpz_mod_poly_init(tab[i],deux);
+	// }
+	// fmpz_t* ptoi=malloc(sizeof(fmpz_t)*16);
+	// for(int i=0;i<16;i++){
+	// fmpz_init(ptoi[i]);
+	// }
 	fmpz_t n;
 	fmpz_t tmp;
 	fmpz_init_set_ui(tmp,16);
 	fmpz_init_set_ui(n,4);
 
 
-
-	fmpz_mod_poly_init(reduc, n);
-	fmpz_mod_poly_set_coeff_ui(reduc, 4, 1);
-	fmpz_mod_poly_set_coeff_ui(reduc, 3, 1);
-	fmpz_mod_poly_set_coeff_ui(reduc, 0, 1);
 	
+
+	// fmpz_mod_poly_init(reduc, n);
+	// fmpz_mod_poly_set_coeff_ui(reduc, 4, 1);
+	// fmpz_mod_poly_set_coeff_ui(reduc, 3, 1);
+	// fmpz_mod_poly_set_coeff_ui(reduc, 0, 1);
 	fmpz_mod_poly_t G;
 	fmpz_mod_poly_init(G,tmp);
 	lookuptab(reduc,tab,2, 16,ptoi);
-	gen_poly(G,tab,ptoi,6,15);
+	gen_poly(G,6,15);
 	printf("g:\n");
 	fmpz_mod_poly_print(G);
 	printf("\n" );
@@ -355,8 +359,8 @@ void test_encryptRS(){
 	fmpz_mod_poly_init(X,tmp);
 	fmpz_mod_poly_set_coeff_ui(X, 6, 1);
 	
-	mulPoly(B,A,X,reduc);
-	findB(R,B,G,ptoi,tab);
+	mulPoly(B,A,X);
+	findB(R,B,G);
 	
 	printf("\nB\n");
 	fmpz_mod_poly_print(R);
