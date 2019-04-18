@@ -160,31 +160,6 @@ void findB(fmpz_mod_poly_t res,fmpz_mod_poly_t A,fmpz_mod_poly_t G,fmpz_t* ptoi,
 
 
 
-
-
-
-// void gen_poly()
-// /* Obtain the generator polynomial of the tt-error correcting, length
-//   nn=(2**mm -1) Reed Solomon code  from the product of (X+alpha**i), i=1..2*tt
-// */
-//  {
-//    register int i,j ;
-
-//    gg[0] = 2 ;    /* primitive element alpha = 2  for GF(2**mm)  */
-//    gg[1] = 1 ;    /* g(x) = (X+alpha) initially */
-//    for (i=2; i<=nn-kk; i++)
-//     { gg[i] = 1 ;
-//       for (j=i-1; j>0; j--)
-//         if (gg[j] != 0)  gg[j] = gg[j-1]^ alpha_to[(index_of[gg[j]]+i)%nn] ;
-//         else gg[j] = gg[j-1] ;
-//       gg[0] = alpha_to[(index_of[gg[0]]+i)%nn] ;     /* gg[0] can never be zero */
-//     }
-//    /* convert gg[] to index form for quicker encoding */
-//    for (i=0; i<=nn-kk; i++)  gg[i] = index_of[gg[i]] ;
-//  }
-
-
-
 //!\TODO 	globaliser les variables (2t, tcycle )
 void gen_poly(fmpz_mod_poly_t G,fmpz_mod_poly_t* tab,fmpz_t* ptoi,int tt,int tcycle){
 	fmpz_t tmp;
