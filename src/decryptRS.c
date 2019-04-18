@@ -508,4 +508,9 @@ void test_decode(){
 	fmpz_mod_poly_print(X);
 	printf("\n");
 
+	fmpz_mod_poly_clear(received);
+	fmpz_mod_poly_clear(X);
+	fmpz_mod_poly_clear(A);
+	fmpz_mod_poly_clear(B);
+	
 }

@@ -361,22 +361,4 @@ void test_encryptRS(){
 	printf("\nB\n");
 	fmpz_mod_poly_print(R);
 	printf("\n");
-
-
-
-
-
-//test mult poly
-	fmpz_mod_poly_t res,op1,op2;
-	fmpz_mod_poly_init(res,tmp);
-	fmpz_mod_poly_init(op1,tmp);
-	fmpz_mod_poly_init(op2,tmp);
-
-	//fmpz_mod_poly_set_coeff_ui(op1, 1, 1);
-	fmpz_mod_poly_set_coeff_ui(op1, 0, 5);
-	//fmpz_mod_poly_set_coeff_ui(op2, 1, 1);
-	fmpz_mod_poly_set_coeff_ui(op2, 0, 13);
-	mulPoly(res,op1,op2,reduc);
-	fmpz_mod_poly_print(res);
-	printf("\n");
 }
