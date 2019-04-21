@@ -16,6 +16,7 @@ extern fmpz_mod_poly_t* tab;
 extern fmpz_t* ptoi;
 extern fmpz_t DEUX;
 extern int gf;
+
 void lookuptab(){
 	fmpz_t d,ev;
 	fmpz_t tmp;
@@ -30,7 +31,7 @@ void lookuptab(){
 	}
 	fmpz_set_ui(ptoi[0],0);
 	for(int i=1;i<gf;i++){
-		tab[i]->p=16;
+		tab[i]->p=gf;
 		fmpz_mod_poly_evaluate_fmpz(ev,tab[i],d);
 		fmpz_set_ui(tmp,i);
 		fmpz_set(ptoi[fmpz_get_ui(ev)],tmp);
@@ -59,9 +60,9 @@ void findB(fmpz_mod_poly_t res,fmpz_mod_poly_t A,fmpz_mod_poly_t G){
 	fmpz_t t2;
 	fmpz_init(t2);
 	fmpz_t d;
-	fmpz_init_set_ui(d,16);
+	fmpz_init_set_ui(d,gf);
 	fmpz_t q;
-	fmpz_init_set_ui(q,15);
+	fmpz_init_set_ui(q,gf-1);
 	fmpz_mod_poly_t tmp;
 	fmpz_mod_poly_init(tmp,d);
 	fmpz_mod_poly_t Gtemp;
@@ -100,13 +101,13 @@ void findB(fmpz_mod_poly_t res,fmpz_mod_poly_t A,fmpz_mod_poly_t G){
 		//mult des coeff
 		fmpz_mod_poly_get_coeff_fmpz(t,res,fmpz_mod_poly_degree(res));
 		
-		if(fmpz_get_ui(t)!=15){
+		if(fmpz_get_ui(t)!=gf-1){
 			for(int i=0;i<fmpz_mod_poly_degree(tmp2)+1;i++){
 				fmpz_mod_poly_get_coeff_fmpz(t2,tmp2,i);
 				if(!fmpz_is_zero(t2)){
 					fmpz_add(t2,t2,t);
 					fmpz_mod(t2,t2,q);
-					if(fmpz_get_ui(t2)==0)fmpz_set_ui(t2,15);
+					if(fmpz_get_ui(t2)==0)fmpz_set_ui(t2,gf-1);
 						fmpz_mod_poly_set_coeff_fmpz(tmp2,i,t2);	
 				}
 			}
@@ -122,8 +123,8 @@ void findB(fmpz_mod_poly_t res,fmpz_mod_poly_t A,fmpz_mod_poly_t G){
 	
 
 			fmpz_mod_poly_add(tmp3,tmp3,tmp4);
-			tmp3->p=16;
-			tmp4->p=16;
+			tmp3->p=gf;
+			tmp4->p=gf;
 		
 
 			fmpz_mod_poly_evaluate_fmpz(t,tmp3,deux);
@@ -164,8 +165,7 @@ void findB(fmpz_mod_poly_t res,fmpz_mod_poly_t A,fmpz_mod_poly_t G){
 
 
 
-//!\TODO 	globaliser les variables (2t, tcycle )
-void gen_poly(fmpz_mod_poly_t G,int tt,int tcycle){
+void gen_poly(fmpz_mod_poly_t G,int tt){
 	fmpz_t tmp;
 	fmpz_t tmp2;
 	fmpz_t tmp3;
@@ -177,7 +177,7 @@ void gen_poly(fmpz_mod_poly_t G,int tt,int tcycle){
 	fmpz_init(tmp2);
 	fmpz_init(tmp3);
 	fmpz_init_set_ui(d,2);
-	fmpz_init_set_ui(s,tcycle);
+	fmpz_init_set_ui(s,gf-1);
 	fmpz_mod_poly_set_coeff_ui(G,0,2);	
 	fmpz_mod_poly_set_coeff_ui(G,1,1);
 	for(int i=2;i<tt+1;i++){
@@ -257,8 +257,8 @@ void mulPoly(fmpz_mod_poly_t res,fmpz_mod_poly_t op1, fmpz_mod_poly_t op2){
 			setBinPoly(ptmp,c1);
 			setBinPoly(ptmp2,c2);
 			fmpz_mod_poly_mulmod(ptmp,ptmp,ptmp2,reduc);
-			ptmp->p=16;//const
-			ptmp2->p=16;//const
+			ptmp->p=gf;
+			ptmp2->p=gf;
 			fmpz_mod_poly_evaluate_fmpz(tmp,ptmp,d);
 
 			fmpz_mod_poly_get_coeff_fmpz(tmp2,res,i+j);
@@ -270,7 +270,7 @@ void mulPoly(fmpz_mod_poly_t res,fmpz_mod_poly_t op1, fmpz_mod_poly_t op2){
 
 		}
 	}
-
+	fmpz_clear(d);
 	fmpz_clear(tmp);
 	fmpz_clear(tmp2);
 	fmpz_clear(c1);
@@ -283,86 +283,114 @@ void mulPoly(fmpz_mod_poly_t res,fmpz_mod_poly_t op1, fmpz_mod_poly_t op2){
 }
 
 
-
-
-
-
-void test_encryptRS(){
-////// voir à déclarer de manière global
-
-	//init des tableaux
-	fmpz_t deux;
-	fmpz_init_set_ui(deux,2);
-
-	// fmpz_mod_poly_t reduc;
-	// fmpz_mod_poly_t* tab=malloc(sizeof(fmpz_mod_poly_t)*16);
-	// for(int i=0;i<16;i++){
-	// 	fmpz_mod_poly_init(tab[i],deux);
-	// }
-	// fmpz_t* ptoi=malloc(sizeof(fmpz_t)*16);
-	// for(int i=0;i<16;i++){
-	// fmpz_init(ptoi[i]);
-	// }
-	fmpz_t n;
+								//ou int* ou char* ou binaire  à definir 	
+void encrypt(fmpz_mod_poly_t res,fmpz_mod_poly_t m, int t,int n){    // n utile? ->contenue dans taille du poly m
 	fmpz_t tmp;
-	fmpz_init_set_ui(tmp,16);
-	fmpz_init_set_ui(n,4);
-
-
-	
-
-	// fmpz_mod_poly_init(reduc, n);
-	// fmpz_mod_poly_set_coeff_ui(reduc, 4, 1);
-	// fmpz_mod_poly_set_coeff_ui(reduc, 3, 1);
-	// fmpz_mod_poly_set_coeff_ui(reduc, 0, 1);
+	fmpz_init_set_ui(tmp,gf);
 	fmpz_mod_poly_t G;
 	fmpz_mod_poly_init(G,tmp);
-	lookuptab(reduc,tab,2, 16,ptoi);
-	gen_poly(G,6,15);
-	printf("g:\n");
-	fmpz_mod_poly_print(G);
-	printf("\n" );
-
-/////----------------------------------------------
-
-	
-
-//affichage des tableaux
-	printf("tab:\n");
-	for(int i=0;i<16;i++){
-		printf("\n%d----",i);
-		fmpz_mod_poly_print(tab[i]);
-		printf("  alpha 	i: ");
-		fmpz_print(ptoi[i]); 
-	}
-
-	
-
-	//test B
+	lookuptab();
+	gen_poly(G,2*t);
 	fmpz_mod_poly_t B;
 	fmpz_mod_poly_init(B,tmp);
 	fmpz_mod_poly_t A;
 	fmpz_mod_poly_init(A,tmp);
 	fmpz_mod_poly_t R;
 	fmpz_mod_poly_init(R,tmp);
-	fmpz_mod_poly_set_coeff_ui(A, 8, 9);
-	fmpz_mod_poly_set_coeff_ui(A, 7, 8);
-	fmpz_mod_poly_set_coeff_ui(A, 6, 7);
-	fmpz_mod_poly_set_coeff_ui(A, 5, 6);
-	fmpz_mod_poly_set_coeff_ui(A, 4, 5);
-	fmpz_mod_poly_set_coeff_ui(A, 3, 4);
-	fmpz_mod_poly_set_coeff_ui(A, 2, 3);
-	fmpz_mod_poly_set_coeff_ui(A, 1, 2);
-	fmpz_mod_poly_set_coeff_ui(A, 0, 1);
-
 	fmpz_mod_poly_t X;
 	fmpz_mod_poly_init(X,tmp);
-	fmpz_mod_poly_set_coeff_ui(X, 6, 1);
+	fmpz_mod_poly_set_coeff_ui(X, 2*t, 1);
 	
-	mulPoly(B,A,X);
+	mulPoly(B,m,X);
 	findB(R,B,G);
-	
-	printf("\nB\n");
-	fmpz_mod_poly_print(R);
-	printf("\n");
+	fmpz_mod_poly_add(res,B,R);
+
+	fmpz_mod_poly_clear(A);
+	fmpz_mod_poly_clear(B);
+	fmpz_mod_poly_clear(G);
+	fmpz_mod_poly_clear(R);
+	fmpz_mod_poly_clear(X);
+	fmpz_clear(tmp);
 }
+
+
+//utile?     test dans decrypt
+// void test_encryptRS(){
+// ////// voir à déclarer de manière global
+
+// 	//init des tableaux
+// 	fmpz_t deux;
+// 	fmpz_init_set_ui(deux,2);
+
+// 	// fmpz_mod_poly_t reduc;
+// 	// fmpz_mod_poly_t* tab=malloc(sizeof(fmpz_mod_poly_t)*16);
+// 	// for(int i=0;i<16;i++){
+// 	// 	fmpz_mod_poly_init(tab[i],deux);
+// 	// }
+// 	// fmpz_t* ptoi=malloc(sizeof(fmpz_t)*16);
+// 	// for(int i=0;i<16;i++){
+// 	// fmpz_init(ptoi[i]);
+// 	// }
+// 	fmpz_t n;
+// 	fmpz_t tmp;
+// 	fmpz_init_set_ui(tmp,16);
+// 	fmpz_init_set_ui(n,4);
+
+
+	
+
+// 	// fmpz_mod_poly_init(reduc, n);
+// 	// fmpz_mod_poly_set_coeff_ui(reduc, 4, 1);
+// 	// fmpz_mod_poly_set_coeff_ui(reduc, 3, 1);
+// 	// fmpz_mod_poly_set_coeff_ui(reduc, 0, 1);
+// 	fmpz_mod_poly_t G;
+// 	fmpz_mod_poly_init(G,tmp);
+// 	lookuptab();
+// 	gen_poly(G,6);
+// 	printf("g:\n");
+// 	fmpz_mod_poly_print(G);
+// 	printf("\n" );
+
+// /////----------------------------------------------
+
+	
+
+// //affichage des tableaux
+// 	printf("tab:\n");
+// 	for(int i=0;i<16;i++){
+// 		printf("\n%d----",i);
+// 		fmpz_mod_poly_print(tab[i]);
+// 		printf("  alpha 	i: ");
+// 		fmpz_print(ptoi[i]); 
+// 	}
+
+	
+
+// 	//test B
+// 	fmpz_mod_poly_t B;
+// 	fmpz_mod_poly_init(B,tmp);
+// 	fmpz_mod_poly_t A;
+// 	fmpz_mod_poly_init(A,tmp);
+// 	fmpz_mod_poly_t R;
+// 	fmpz_mod_poly_init(R,tmp);
+// 	fmpz_mod_poly_set_coeff_ui(A, 8, 9);
+// 	fmpz_mod_poly_set_coeff_ui(A, 7, 8);
+// 	fmpz_mod_poly_set_coeff_ui(A, 6, 7);
+// 	fmpz_mod_poly_set_coeff_ui(A, 5, 6);
+// 	fmpz_mod_poly_set_coeff_ui(A, 4, 5);
+// 	fmpz_mod_poly_set_coeff_ui(A, 3, 4);
+// 	fmpz_mod_poly_set_coeff_ui(A, 2, 3);
+// 	fmpz_mod_poly_set_coeff_ui(A, 1, 2);
+// 	fmpz_mod_poly_set_coeff_ui(A, 0, 1);
+
+// 	fmpz_mod_poly_t X;
+// 	fmpz_mod_poly_init(X,tmp);
+// 	fmpz_mod_poly_set_coeff_ui(X, 6, 1);
+	
+// 	mulPoly(B,A,X);
+// 	findB(R,B,G);
+	
+// 	printf("\nB\n");
+// 	fmpz_mod_poly_print(R);
+// 	printf("\n");
+// }
