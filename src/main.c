@@ -11,6 +11,7 @@
 #include <flint/fmpz_mod_poly.h>
 #include "../inc/encryptRS.h"
 #include "../inc/decryptRS.h"
+#include "../inc/matrice.h"
 #include <stdlib.h>
 	
 
@@ -103,15 +104,42 @@ void get_reduc(int m){
 	setBinPoly(reduc,mf);
 	 fmpz_clear(mf);
 	 fclose(fd);
+	 
 }
 
 
 
 int main(int argc, char** argv){
-	get_reduc(atoi(argv[1]));
-	init_tabs(atoi(argv[1]));
+	//clear_tabs();
+	// get_reduc(atoi(argv[1]));
+	// init_tabs(atoi(argv[1]));
+	int n=7;
+	int k=3;
+	int t=2;
 
-	test_decode();
-	clear_tabs();
+
+	//int n=15;
+	//int k=9;
+	//int t=3;
+	fmpz_mat_t key;
+	fmpz_mat_init(key,k,n);
+
+	keygen(key,n,k);
+	//affichage des tableaux
+	printf("tab:\n");
+	for(int i=0;i<8;i++){
+		printf("\n%d----",i);
+		fmpz_mod_poly_print(tab[i]);
+		printf("  alpha 	i: ");
+		fmpz_print(ptoi[i]); 
+	}
+	fmpz_mat_t c;
+	fmpz_mat_init(c,1,n);
+	int m[7	]={3,5,6,8,7,5,7};
+	//int m[15]={3,5,6,8,7,5,7,10,15,5,4,8,9,13,12};
+	Encrypt_McEliece(c,m,key,t,k,n);
+	Decrypt_McEliece(c,n,k,t);
+
+
 	return 0;
 }
