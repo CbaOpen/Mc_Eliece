@@ -437,7 +437,7 @@ void test_decode(){
 
 
 
-
+	gf=8;
 	
 
 	/********** Chiffrement ************/
@@ -460,7 +460,7 @@ void test_decode(){
 	fmpz_mod_poly_init(received,tmp);
 	// encrypt(received,A,3,45); //test t=3   //n utile ?
 	//encrypt(received,A,4,45); //test avec t=4
-	encrypt(received,A,2,45); //test avec t=2
+	encrypt(received,A,2,9); //test avec t=2
 	
 
 		//affichage des tableaux

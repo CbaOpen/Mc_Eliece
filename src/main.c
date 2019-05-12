@@ -113,14 +113,14 @@ int main(int argc, char** argv){
 	//clear_tabs();
 	// get_reduc(atoi(argv[1]));
 	// init_tabs(atoi(argv[1]));
-	int n=7;
-	int k=3;
-	int t=2;
 
 
-	//int n=15;
-	//int k=9;
-	//int t=3;
+	// int n=7;
+	// int k=3;
+	// int t=2;
+	int n=15;
+	int k=9;
+	int t=3;
 	fmpz_mat_t key;
 	fmpz_mat_init(key,k,n);
 
@@ -135,8 +135,8 @@ int main(int argc, char** argv){
 	}
 	fmpz_mat_t c;
 	fmpz_mat_init(c,1,n);
-	int m[7	]={3,5,6,8,7,5,7};
-	//int m[15]={3,5,6,8,7,5,7,10,15,5,4,8,9,13,12};
+	//int m[3]={3,5,6};
+	int m[9]={5,6,3,8,7,5,11,10,15};
 	Encrypt_McEliece(c,m,key,t,k,n);
 	Decrypt_McEliece(c,n,k,t);
 

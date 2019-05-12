@@ -285,7 +285,7 @@ void mulPoly(fmpz_mod_poly_t res,fmpz_mod_poly_t op1, fmpz_mod_poly_t op2){
 
 
 								//ou int* ou char* ou binaire  à definir 	
-void encrypt(fmpz_mod_poly_t res,fmpz_mat_t Gm,fmpz_mod_poly_t m, int t,int n){    // n utile? ->contenue dans taille du poly m
+void encrypt(fmpz_mod_poly_t res,fmpz_mod_poly_t m, int t,int n){    // n utile? ->contenue dans taille du poly m
 	fmpz_t tmp;
 	fmpz_init_set_ui(tmp,gf);
 	fmpz_mod_poly_t G;
