@@ -6,7 +6,7 @@ Le cryptosystème de McEliece est un chiffrement à clé publique utilisant les 
 Librairie nécessaire
 ================================================================
 
-Flint est une librairie pour le langage C qui permet de faire de la théorie des nombres. Vous trouverez une archive pour son installation ici : http://www.flintlib.org/downloads.html
+Flint est une librairie pour le langage C qui permet de faire de la théorie des nombres. Vous trouverez une archive pour son installation ici : http://www.flintlib.org/downloads.html.
 Les bibliothèques GMP (version 5.1.1 minimum) et MPFR (version 3.0.0 minimum) sont également nécéssaires à l'installation et l'utilisation de Flint.
 
  Commandes
