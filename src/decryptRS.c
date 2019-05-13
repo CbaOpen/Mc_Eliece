@@ -401,10 +401,7 @@ int decode(fmpz_mod_poly_t data, fmpz_mod_poly_t received ,int tt ){
 			fmpz_init(temp2);
 			
 		}
-		printf("poly d'erreur \n");
-		fmpz_mod_poly_print(poly_error);
 		xor_polynome(data, poly_error, received);
-		printf("\n");
 	}
 
 

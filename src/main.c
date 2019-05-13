@@ -13,6 +13,7 @@
 #include "../inc/decryptRS.h"
 #include "../inc/matrice.h"
 #include <stdlib.h>
+#include <string.h>
 	
 
 fmpz_mod_poly_t reduc;
@@ -87,59 +88,122 @@ void clear_tabs(){
 
 
 void get_reduc(int m){
-	 FILE* fd = fopen("poly_irr.txt", "r");
-	 if(fd==NULL){printf("fichier poly_irr.txt introuvable");exit(0);}
-	 int tmp;
-	 int tmp2;
-	 int test;
-	 fmpz_t mf;
-	 while (tmp!=m && test){
-	 	test=fscanf(fd,"%d %d",&tmp,&tmp2);
-	 }
+	FILE* fd = fopen("poly_irr.txt", "r");
+	if(fd==NULL){printf("fichier poly_irr.txt introuvable");exit(0);}
+	int tmp;
+	int tmp2;
+	int test;
+	fmpz_t mf;
+	test=fscanf(fd,"%d %d",&tmp,&tmp2);
+	while (tmp!=m && test){
+		test=fscanf(fd,"%d %d",&tmp,&tmp2);
+	}
 
-	 fmpz_init_set_ui(mf,m);
-	 fmpz_mod_poly_init(reduc,mf);
-	 tmp2=convertOctalToDecimal(tmp2);
-	 fmpz_set_ui(mf,tmp2);
+	fmpz_init_set_ui(mf,m);
+	fmpz_mod_poly_init(reduc,mf);
+	tmp2=convertOctalToDecimal(tmp2);
+	fmpz_set_ui(mf,tmp2);
 	setBinPoly(reduc,mf);
-	 fmpz_clear(mf);
-	 fclose(fd);
+	fmpz_clear(mf);
+	fclose(fd);
 	 
 }
 
 
+void Get_msg(FILE* M,int *msg,int k){
+	int tmp;
+	for(int i=0;i<k;i++){
+		tmp=fgetc(M);
+		if(tmp==EOF){
+			printf("le message ne contient pas le bon nombre de caractère\n");
+			exit(1);
+		}
+		msg[i]=tmp;
+
+	}
+}
+
 
 int main(int argc, char** argv){
-	//clear_tabs();
-	// get_reduc(atoi(argv[1]));
-	// init_tabs(atoi(argv[1]));
-
-
-	// int n=7;
-	// int k=3;
-	// int t=2;
-	int n=15;
-	int k=9;
-	int t=3;
-	fmpz_mat_t key;
-	fmpz_mat_init(key,k,n);
-
-	keygen(key,n,k);
-	//affichage des tableaux
-	printf("tab:\n");
-	for(int i=0;i<8;i++){
-		printf("\n%d----",i);
-		fmpz_mod_poly_print(tab[i]);
-		printf("  alpha 	i: ");
-		fmpz_print(ptoi[i]); 
+	//verif arg et FILE 
+	if(argc<2){
+	 // help
+	 exit(1); 
 	}
-	fmpz_mat_t c;
-	fmpz_mat_init(c,1,n);
-	//int m[3]={3,5,6};
-	int m[9]={5,6,3,8,7,5,11,10,15};
-	Encrypt_McEliece(c,m,key,t,k,n);
-	Decrypt_McEliece(c,n,k,t);
+	//mceliece -key n k 
+	if(strcmp(argv[1],"-key")==0){
+		int n=atoi(argv[2]);
+		int k=atoi(argv[3]);
+		if( (n-k)%2 != 0){
+			printf("paramètre n et k incompatible \n");
+			exit(1);
+		}
+		fmpz_mat_t key;
+		fmpz_mat_init(key,k,n);
+		keygen(key,n,k);
+		fmpz_mat_clear(key);
+		clear_tabs();
+		return 0;
 
+	}
+	//mceliece -c KEYpub n k msg chiffré 
+	if(strcmp(argv[1],"-c")==0){
+		FILE * keyf=fopen(argv[2],"r");
+		fmpz_mat_t key;
+		int n=atoi(argv[3]);
+		int k =atoi(argv[4]);
+		if( (n-k)%2 != 0){
+			printf("paramètre n et k incompatible \n");
+			exit(1);
+		}
+		int t=(n-k)/2;
+		fmpz_mat_init(key,k,n);
+		fmpz_mat_fread(keyf,key);
+		fclose(keyf);
+		FILE* M=fopen(argv[5],"r");
+		int *msg=malloc(sizeof(int)*k);
+		Get_msg(M,msg,k);
+		
+		FILE* c=fopen(argv[6],"w");
+		int m=log(n+1)/log(2);
+		get_reduc(m);
+		init_tabs(m);
+		get_reduc(m);
+		lookuptab();
+		Encrypt_McEliece(c,msg,key,t,k,n);
+		fclose(c);	
+		fclose(M);
+		clear_tabs();
+		free(msg);
+		fmpz_mat_clear(key);
+		return 0;
+	}
 
-	return 0;
+	//mceliece -d KEYpriv n k chiffre msg
+	if(strcmp(argv[1],"-d")==0){
+		FILE* keys=fopen(argv[2],"r");
+		FILE* c=fopen(argv[5],"r");
+		FILE* msg=fopen(argv[6],"w");
+		int n=atoi(argv[3]);
+		int k=atoi(argv[4]);
+		if( (n-k)%2 != 0){
+			printf("paramètre n et k incompatible \n");
+			exit(1);
+		}
+		int t=(n-k)/2;
+		int m=log(n+1)/log(2);
+		get_reduc(m);
+		init_tabs(m);
+		get_reduc(m);
+		lookuptab();
+		Decrypt_McEliece(c,n,k,t,keys,msg);
+		fclose(keys);
+		fclose(c);
+		fclose(msg);
+		clear_tabs();
+		return 0; 
+	}
+	//help
+	return 1;
+
 }
