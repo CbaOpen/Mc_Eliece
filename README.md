@@ -3,7 +3,7 @@ Projet réalisé par Claire Baskevitch, Ziadath Babaedjou et Tristan Bessac - Ma
 
 Le cryptosystème de McEliece est un chiffrement à clé publique utilisant les codes correcteurs d'erreurs, ici les codes de Reed-Solomon, pour sécuriser un message. Ce programme implémente ce cryptosystème à l'aide de la librairie Flint.
 
-Librairie nécessaire
+Librairies nécessaires
 ================================================================
 
 Flint est une librairie pour le langage C qui permet de faire de la théorie des nombres. Vous trouverez une archive pour son installation ici : http://www.flintlib.org/downloads.html.
