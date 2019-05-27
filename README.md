@@ -19,12 +19,22 @@ Les bibliothèques GMP (version 5.1.1 minimum) et MPFR (version 3.0.0 minimum) s
    L'exécutable se trouve dans le dossier bin/
 ### - Génération des clés
 
-    mceliece ...
+    mceliece -key n k
+n et k étant les paramètres de sécurité.
+les fichier KEYpub et KEYpriv contenant respectivement la clé publique et la clé privé sont créés dans le dossier courant.
 
 ### - Chiffrement
 
-    mceliece ..
+    mceliece -c KEYpub n k [msg] [chiffré]
+n , k : paramètres de sécurité.
+KEYpub : chemin vers la clé publique.
+[msg] chemin vers le message à chiffrer.
+[chiffré] chemin vers le fichier où sera inscrit le message chiffré. 
 
 ### - Déchiffrement
 
-    mceliece ..
+    mceliece -d KEYpriv n k [chiffre] [msg]
+n , k : paramètres de sécurité.    
+KEYpiv : chemin vers la clé privé.
+[chiffre] : chemin vers le message chiffré.
+[msg] : chemin vers le fichier où sera inscrit le message à déchiffrer.
