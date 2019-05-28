@@ -1,17 +1,12 @@
-//#include <flint/flint.h>
 #include <flint/fmpz.h>
 #include <stdio.h>
 #include <flint/fmpz_poly.h>
-#include "encryptRS.h"
-#include "decryptRS.h"
-
 #include <math.h>
-#include <flint/fmpz_poly.h>
 #include <flint/fmpz_mat.h>
 #include <flint/fmpz_mod_poly.h>
 #include "../inc/encryptRS.h"
 #include "../inc/decryptRS.h"
-#include "../inc/matrice.h"
+#include "../inc/mceliece.h"
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -21,25 +16,10 @@ fmpz_mod_poly_t reduc;
 fmpz_mod_poly_t* tab;
 fmpz_t* ptoi;
 fmpz_t DEUX;    
-				// s  === bit par symbole   en param ou a calculer -> = ln(n+1)/ln(2) === log2(n+1)  / 
-long gf;			// gf === 2^s 											                  n = 2^s - 1			
-				// k  === nb symbole dans le message  k=n-2t
-				// 2t === nb de symbole de contrôle  = n-k
-				// n(taille encoder) = k+2t	
+long gf;					
 
-/* résumé des formules 
 
-n = 2^s -1    
-s = log2(n+1)
-gf(2^s)
-
-k  = n-2t
-2t = n-k
-n  = k+2t
-
-*/
-
-//long ?					long?
+/* convertit un entier en base 8 en entier en base 10 */
 long convertOctalToDecimal(long octalNumber)
 {
     long decimalNumber = 0, i = 0;
@@ -57,7 +37,7 @@ long convertOctalToDecimal(long octalNumber)
 }
 
 
-
+/*initialise la mémoire des tables */
 void init_tabs(long m){
 	fmpz_init_set_ui(DEUX,2);
 	double m2 =pow(2,m);
@@ -67,7 +47,7 @@ void init_tabs(long m){
 		fmpz_mod_poly_init(tab[i],DEUX);
 	}
 	ptoi=malloc(sizeof(fmpz_t)*(long long)m2);
-	if(ptoi==NULL || tab==NULL){printf("soucis dans l'init des tab");exit(0);}
+	if(ptoi==NULL || tab==NULL){printf("problème dans l'initialisation des tableaux");exit(0);}
 	for(long i=0;i<(long)m2;i++){
 		fmpz_init(ptoi[i]);
 	
@@ -76,6 +56,7 @@ void init_tabs(long m){
 
 }
 
+/* libère la mémoire des tables */
 void clear_tabs(){
 	for(long i=0;i<gf;i++){
 		fmpz_mod_poly_clear(tab[i]);
@@ -87,7 +68,7 @@ void clear_tabs(){
 	free(ptoi);
 }
 
-
+/* récupère le polynome irreductible */
 void get_reduc(long m){
 	FILE* fd = fopen("poly_irr.txt", "r");
 	if(fd==NULL){printf("fichier poly_irr.txt introuvable");exit(0);}
@@ -110,7 +91,7 @@ void get_reduc(long m){
 	 
 }
 
-
+/* récupère le message à chiffré */
 void Get_msg(FILE* M,int *msg,long k){
 	long tmp;
 	for(long i=0;i<k;i++){
@@ -124,7 +105,7 @@ void Get_msg(FILE* M,int *msg,long k){
 	}
 }
 
-//faire parr read me
+/* affich l'aide */
 void help(){
 	printf("les paramètres de sécurité sont n et k, n - k doit être pair\n");
 	printf("Pour générer les clés : -key n k\n un fichier KEYpub contenant la clé public et un fichier KEYpriv contenant la clé privé sont générés\n\n");
@@ -142,154 +123,119 @@ void help(){
 }
 
 
+/* analyse des temps, non utilisé par l'application */
+void analyse_RS(){
+	clock_t enc;
+	clock_t dec;
+	fmpz_t gff;
 
-	void analyse_RS(){
-		//2_8  2_10
-		clock_t deb;
-		clock_t enc;
-		clock_t dec;
-		fmpz_t gff;
-
-		long n = pow(2,10)-1;
-		fmpz_mod_poly_t ms,c,res;
-		long m=log(n+1)/log(2);
-		get_reduc(m);
-		init_tabs(m);
-		get_reduc(m);
-		lookuptab();
-
-
-		fmpz_init_set_ui(gff,gf);
-		fmpz_mod_poly_init(ms,gff);
-		fmpz_mod_poly_init(res,gff);
-		FILE* ResRS=fopen("ResRS2_t","w");
-		for(long i=0;i<85;i++){
-			fmpz_mod_poly_set_coeff_ui(ms,i,67);
-		}
-		for(long k=1;k<86;k+=1){
-			if((n-k)%2==0){
-				fmpz_mod_poly_init(c,gff);
-
-				long t=(n-85)/2;
-				printf("k %ld\n",k);
-				deb=clock();
-				printf("encode\n");
-				encrypt(c,ms,t,n);
-				for(long i=0;i<k){
-					fmpz_mod_poly_set_coeff_ui(c,i,1);
-				}
-				enc=clock();
-
-				printf("decode\n");
-				decode(res,c,2*t);	
-				dec=clock();
-				fprintf(ResRS, "%ld %ld %LF %Lf \n",n,k,((long double)((enc-deb)/CLOCKS_PER_SEC)),((long double)((dec-enc)/CLOCKS_PER_SEC)));
-				fmpz_mod_poly_clear(c);
+	long n = pow(2,8)-1;
+	fmpz_mod_poly_t ms,c,res;
+	long m=log(n+1)/log(2);
+	get_reduc(m);
+	init_tabs(m);
+	get_reduc(m);
+	lookuptab();
+	fmpz_init_set_ui(gff,gf);
+	fmpz_mod_poly_init(ms,gff);
+	fmpz_mod_poly_init(res,gff);
+	FILE* ResRS=fopen("ResRS2_t","w");
+	for(long i=0;i<85;i++){
+		fmpz_mod_poly_set_coeff_ui(ms,i,67);
+	}
+	for(long k=1;k<86;k+=1){
+		if((n-k)%2==0){
+			fmpz_mod_poly_init(c,gff);
+			long t=(n-85)/2;
+			printf("k %ld\n",k);
+			//deb=clock();
+			printf("encode\n");
+			encrypt(c,ms,t,n);
+			for(long i=0;i<k;i++){
+				fmpz_mod_poly_set_coeff_ui(c,i,1);
+			}
+			enc=clock();
+			printf("decode\n");
+			decode(res,c,2*t);	
+			dec=clock();
+			fprintf(ResRS, "%ld %ld %LF \n",n,k,((long double)((dec-enc))));
+			fmpz_mod_poly_clear(c);
 			}
 		}
 
 }
 
 
+/* analyse des temps, non utilisé par  l'application */
+void analyse_mce(){
+	    long n=pow(2,12)-1;	
+		printf("n %ld\n",n);
+		clock_t deb;
+		clock_t gen;
+		clock_t chiffr;
+		clock_t dechiffr;
+		FILE* ressim=fopen("ResSimuln_2_12.data","w");
+		for(long k=1;k<n-1;k+=1000){
+			if((n-k)%2==0){
+				printf("k: %ld\n",k);
+				fmpz_mat_t key;
+				fmpz_mat_init(key,k,n);		
+				deb=clock();
+				keygen(key,n,k);
+				gen=clock();
+				fmpz_mat_clear(key);
+				clear_tabs();
+				//chiffre
+				printf("chiffre\n");
+				FILE * keyf=fopen("KEYpub","r");
+				long t=(n-k)/2;
+				fmpz_mat_init(key,k,n);
+				fmpz_mat_fread(keyf,key);
+				fclose(keyf);
+				int *msg=malloc(sizeof(int)*k);
+				for(long v=0;v<k;v++){
+					msg[v]=67;
+				} 
+				FILE* c=fopen("chiffre","w");
+				long m=log(n+1)/log(2);
+				get_reduc(m);
+				init_tabs(m);
+				get_reduc(m);
+				lookuptab();
+				Encrypt_McEliece(c,msg,key,t,k,n);
+				fclose(c);	
+				clear_tabs();
+				free(msg);
+				fmpz_mat_clear(key);
+				chiffr=clock();
 
-	void analyse_mce(){
-			//long n = pow(2,8)-1;
-		    long n=pow(2,12)-1;	
-			printf("n %ld\n",n);
-			//long n-k=pow(2,10)-1;
-			clock_t deb;
-			clock_t gen;
-			clock_t chiffr;
-			clock_t dechiffr;
-			FILE* ressim=fopen("ResSimuln_2_12.data","w");
-			for(long k=1;k<n-1;k+=1000){
-				if((n-k)%2==0){
-					printf("k: %ld\n",k);
-					fmpz_mat_t key;
-					fmpz_mat_init(key,k,n);
-					
-					deb=clock();
-					
-
-					keygen(key,n,k);
-					
-
-					gen=clock();
-					
-					fmpz_mat_clear(key);
-					clear_tabs();
-					//chiffre
-					printf("chiffre\n");
-					FILE * keyf=fopen("KEYpub","r");
-					//fmpz_mat_t key;
-					long t=(n-k)/2;
-					fmpz_mat_init(key,k,n);
-					fmpz_mat_fread(keyf,key);
-					fclose(keyf);
-					//FILE* M=fopen("message","r");
-					int *msg=malloc(sizeof(int)*k);
-					//Get_msg(M,msg,k);					//à modif pour lire en boucle
-					for(long v=0;v<k;v++){
-						msg[v]=67;
-					} 
-					FILE* c=fopen("chiffre","w");
-					long m=log(n+1)/log(2);
-					get_reduc(m);
-					init_tabs(m);
-					get_reduc(m);
-					lookuptab();
-					Encrypt_McEliece(c,msg,key,t,k,n);
-					fclose(c);	
-					clear_tabs();
-					free(msg);
-					fmpz_mat_clear(key);
-					chiffr=clock();
-
-					//dechiffr
-					printf("dechiffre\n");	
-					FILE* keys=fopen("KEYpriv","r");
-					/*FILE* */ c=fopen("chiffre","r");
-					FILE* mesg=fopen("msg","w");
-					/*long*/ t=(n-k)/2;
-					/*long*/ m=log(n+1)/log(2);
-					get_reduc(m);
-					init_tabs(m);
-					get_reduc(m);
-					lookuptab();
-					Decrypt_McEliece(c,n,k,t,keys,mesg);
-					fclose(keys);
-					fclose(c);
-					fclose(mesg);
-					clear_tabs();
-
-					dechiffr=clock();
-					
-					fprintf(ressim, "%ld %ld %LF %Lf %LF\n",n,k,((long double)((gen-deb)/CLOCKS_PER_SEC)),((long double)((chiffr-gen)/CLOCKS_PER_SEC)),((long double)((dechiffr-chiffr)/CLOCKS_PER_SEC)));	
-				}
+				//dechiffr
+				printf("dechiffre\n");	
+				FILE* keys=fopen("KEYpriv","r");
+				c=fopen("chiffre","r");
+				FILE* mesg=fopen("msg","w");
+				t=(n-k)/2;
+				m=log(n+1)/log(2);
+				get_reduc(m);
+				init_tabs(m);
+				get_reduc(m);
+				lookuptab();
+				Decrypt_McEliece(c,n,k,t,keys,mesg);
+				fclose(keys);
+				fclose(c);
+				fclose(mesg);
+				clear_tabs();
+				dechiffr=clock();
+				fprintf(ressim, "%ld %ld %LF %Lf %LF\n",n,k,((long double)((gen-deb)/CLOCKS_PER_SEC)),((long double)((chiffr-gen)/CLOCKS_PER_SEC)),((long double)((dechiffr-chiffr)/CLOCKS_PER_SEC)));	
 			}
+		}
 
-
-
-				
-			
-
-		
-
-	}
-
+}
 
 	
 
 
-
-
-
-
 int main(int argc, char** argv){
-	//verif arg et FILE 
-	analyse_mce();
-	exit(0);
-
 	if(argc<2){
 	 help(); 
 	}
@@ -353,7 +299,7 @@ int main(int argc, char** argv){
 		FILE* keys=fopen(argv[2],"r");
 		if(keys==NULL){printf("erreur lors de l'ouverture du fichier contenant la clé\n");exit(1);}
 		FILE* c=fopen(argv[5],"r");
-		if(c==NULL){printf("erreur lors de l'ouverture du fichier chiffré");exit(1);}
+		if(c==NULL){printf("erreur lors de l'ouverture du fichier chiffré\n");exit(1);}
 		FILE* msg=fopen(argv[6],"w");
 		if(msg==NULL){printf("erreur lors de l'ouverture du message\n");exit(1);}
 		long n=atol(argv[3]);

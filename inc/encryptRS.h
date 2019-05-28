@@ -23,6 +23,5 @@ void gen_poly(fmpz_mod_poly_t G,long tt);
 void setBinPoly(fmpz_mod_poly_t res,fmpz_t f);
 void mulPoly(fmpz_mod_poly_t res,fmpz_mod_poly_t op1, fmpz_mod_poly_t op2);
 void encrypt(fmpz_mod_poly_t res,	fmpz_mod_poly_t m, long t,long n);
-//void test_encryptRS();
 
 #endif

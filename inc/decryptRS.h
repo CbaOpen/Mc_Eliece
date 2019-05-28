@@ -21,6 +21,5 @@ void division(fmpz_mod_poly_t q, fmpz_mod_poly_t r, fmpz_mod_poly_t dividente, f
 void algo_euclide( fmpz_mod_poly_t localisation,fmpz_mod_poly_t amplitude , fmpz_mod_poly_t x2t_v, fmpz_mod_poly_t syndrome_v,long tt);
 bool calcul_poly_syndrome(fmpz_mod_poly_t syndrome, fmpz_mod_poly_t data,long tt);
 void derivation(fmpz_mod_poly_t res, fmpz_mod_poly_t function);
-long decode(fmpz_mod_poly_t data, fmpz_mod_poly_t received ,long tt );
-void test_decode();
+void decode(fmpz_mod_poly_t data, fmpz_mod_poly_t received ,long tt );
 #endif

@@ -1,5 +1,4 @@
 #include "../inc/encryptRS.h"
-#include "../inc/matrice.h"
 #include <gmp.h>
 #include <mpfr.h>
 #include <stdlib.h>
@@ -18,6 +17,11 @@ extern fmpz_t* ptoi;
 extern fmpz_t DEUX;
 extern long gf;
 
+
+/* génère les tables des éléments du corps fini
+tab lie la puissance en alpha au polynome
+ptoi la forme décimale à la puissance en alpha 
+ */
 void lookuptab(){
 	fmpz_t d,ev;
 	fmpz_t tmp;
@@ -47,14 +51,11 @@ void lookuptab(){
 
 
 
-
+/*calcul le polynome B par une longue division de polynome */
 void findB(fmpz_mod_poly_t res,fmpz_mod_poly_t A,fmpz_mod_poly_t G){
-	
 
 	fmpz_t deux;
 	fmpz_init_set_ui(deux,2);	
-
-
 
 	fmpz_t t;
 	fmpz_init(t);
@@ -72,13 +73,10 @@ void findB(fmpz_mod_poly_t res,fmpz_mod_poly_t A,fmpz_mod_poly_t G){
 	fmpz_mod_poly_init(tmp2,d);
 	fmpz_mod_poly_set(res,A);
 
-
-
 	fmpz_mod_poly_t tmp3;
 	fmpz_mod_poly_init(tmp3,deux);
 	fmpz_mod_poly_t tmp4;
 	fmpz_mod_poly_init(tmp4,deux);
-
 
 	// set coeff en ^alpha  -> G et res
 	for(long i=0;i<fmpz_mod_poly_degree(res)+1;i++){
@@ -90,7 +88,6 @@ void findB(fmpz_mod_poly_t res,fmpz_mod_poly_t A,fmpz_mod_poly_t G){
 		fmpz_mod_poly_set_coeff_fmpz(Gtemp,i,ptoi[fmpz_get_ui(t)]);
 	}
 
-
 	//boucle
 	while(fmpz_mod_poly_degree(res)>fmpz_mod_poly_degree(G)-1){
 		
@@ -98,10 +95,8 @@ void findB(fmpz_mod_poly_t res,fmpz_mod_poly_t A,fmpz_mod_poly_t G){
 		fmpz_mod_poly_set_coeff_ui(tmp,fmpz_mod_poly_degree(res)-fmpz_mod_poly_degree(G),1);
 		fmpz_mod_poly_mul(tmp2,tmp,Gtemp);
 
-
-		//mult des coeff
+		//multiplication des coeff
 		fmpz_mod_poly_get_coeff_fmpz(t,res,fmpz_mod_poly_degree(res));
-		
 		if(fmpz_get_ui(t)!=gf-1){
 			for(long i=0;i<fmpz_mod_poly_degree(tmp2)+1;i++){
 				fmpz_mod_poly_get_coeff_fmpz(t2,tmp2,i);
@@ -122,12 +117,10 @@ void findB(fmpz_mod_poly_t res,fmpz_mod_poly_t A,fmpz_mod_poly_t G){
 			if(!fmpz_is_zero(t))fmpz_mod_poly_set(tmp3,tab[fmpz_get_ui(t)]);else fmpz_mod_poly_zero(tmp3);
 			if(!fmpz_is_zero(t2))fmpz_mod_poly_set(tmp4,tab[fmpz_get_ui(t2)]);else fmpz_mod_poly_zero(tmp4);
 	
-
 			fmpz_mod_poly_add(tmp3,tmp3,tmp4);
 			tmp3->p=gf;
 			tmp4->p=gf;
 		
-
 			fmpz_mod_poly_evaluate_fmpz(t,tmp3,deux);
 			if(!fmpz_is_zero(t))fmpz_set(t,ptoi[fmpz_get_ui(t)]);
 
@@ -139,7 +132,6 @@ void findB(fmpz_mod_poly_t res,fmpz_mod_poly_t A,fmpz_mod_poly_t G){
 		_fmpz_mod_poly_normalise(res);
 		fmpz_mod_poly_zero(tmp);
 	}
-
 
 	// i -> alpha^i
 	for(long i=0;i<fmpz_mod_poly_degree(res)+1;i++){
@@ -165,7 +157,7 @@ void findB(fmpz_mod_poly_t res,fmpz_mod_poly_t A,fmpz_mod_poly_t G){
 }
 
 
-
+/* calcul le polynoome générateur */
 void gen_poly(fmpz_mod_poly_t G,long tt){
 	fmpz_t tmp;
 	fmpz_t tmp2;
@@ -186,32 +178,29 @@ void gen_poly(fmpz_mod_poly_t G,long tt){
 		for(long j=i-1;j>0;j--){
 			fmpz_mod_poly_get_coeff_fmpz(tmp,G,j);
 			if(!fmpz_is_zero(tmp)){
-					fmpz_mod_poly_get_coeff_fmpz(tmp,G,j-1); //tmp -> g[j-1]
-					fmpz_mod_poly_get_coeff_fmpz(tmp2,G,j); // tmp2 -> g[j]
-					fmpz_set(tmp2,ptoi[fmpz_get_ui(tmp2)]); //tmp2 index[g[j]]
-					fmpz_add_ui(tmp2,tmp2,i); // tmp2 +i  
-					fmpz_mod(tmp2,tmp2,s); 	// tmp2 mod 15		
-					fmpz_mod_poly_evaluate_fmpz(ev,tab[fmpz_get_ui(tmp2)],d);
-					
-					fmpz_xor(tmp,tmp,ev);
-					
-					fmpz_mod_poly_set_coeff_fmpz(G,j,tmp);
+				fmpz_mod_poly_get_coeff_fmpz(tmp,G,j-1); //tmp -> g[j-1]
+				fmpz_mod_poly_get_coeff_fmpz(tmp2,G,j); // tmp2 -> g[j]
+				fmpz_set(tmp2,ptoi[fmpz_get_ui(tmp2)]); //tmp2 index[g[j]]
+				fmpz_add_ui(tmp2,tmp2,i); // tmp2 +i  
+				fmpz_mod(tmp2,tmp2,s); 	// tmp2 mod 15		
+				fmpz_mod_poly_evaluate_fmpz(ev,tab[fmpz_get_ui(tmp2)],d);
+				fmpz_xor(tmp,tmp,ev);
+				fmpz_mod_poly_set_coeff_fmpz(G,j,tmp);
 
 			}else{
 				fmpz_mod_poly_get_coeff_fmpz(tmp,G,j-1);
 				fmpz_mod_poly_set_coeff_fmpz(G,j,tmp);				
 			}
 
-		}
-					
+		}					
 		//       gg[0] = alpha_to[(index_of[gg[0]]+i)%nn] ; 
-					fmpz_mod_poly_get_coeff_fmpz(tmp,G,0); //tmp -> g[j-1]
-					 // tmp2 -> g[j]
-					fmpz_set(tmp,ptoi[fmpz_get_ui(tmp)]);
-					fmpz_add_ui(tmp,tmp,i); // tmp2 +i  
-					fmpz_mod(tmp,tmp,s);
-					fmpz_mod_poly_evaluate_fmpz(ev,tab[fmpz_get_ui(tmp)],d);
-					fmpz_mod_poly_set_coeff_fmpz(G,0,ev);					
+		fmpz_mod_poly_get_coeff_fmpz(tmp,G,0); //tmp -> g[j-1]
+		 // tmp2 -> g[j]
+		fmpz_set(tmp,ptoi[fmpz_get_ui(tmp)]);
+		fmpz_add_ui(tmp,tmp,i); // tmp2 +i  
+		fmpz_mod(tmp,tmp,s);
+		fmpz_mod_poly_evaluate_fmpz(ev,tab[fmpz_get_ui(tmp)],d);
+		fmpz_mod_poly_set_coeff_fmpz(G,0,ev);					
 
 
 
@@ -227,7 +216,7 @@ void gen_poly(fmpz_mod_poly_t G,long tt){
 
 
 
-
+/*crée un polynome à partir du binaire d'un entier  */
 void setBinPoly(fmpz_mod_poly_t res,fmpz_t f){
 	fmpz_mod_poly_zero(res);
 	for(size_t bi=fmpz_sizeinbase(f,2);bi>0;bi--){
@@ -237,7 +226,7 @@ void setBinPoly(fmpz_mod_poly_t res,fmpz_t f){
 }
 
 
-
+/* multiplication de 2 polynomes dans le champ galois*/
 void mulPoly(fmpz_mod_poly_t res,fmpz_mod_poly_t op1, fmpz_mod_poly_t op2){
 	fmpz_t c1,c2 ,d,tmp,tmp2;
 	fmpz_init_set_ui(d,2);
@@ -284,13 +273,13 @@ void mulPoly(fmpz_mod_poly_t res,fmpz_mod_poly_t op1, fmpz_mod_poly_t op2){
 }
 
 
-								//ou long* ou char* ou binaire  à definir 	
-void encrypt(fmpz_mod_poly_t res,fmpz_mod_poly_t m, long t,long n){    // n utile? ->contenue dans taille du poly m
+/*  crée le code de reed solomon d'un message*/	
+void encrypt(fmpz_mod_poly_t res,fmpz_mod_poly_t m, long t,long n){    
 	fmpz_t tmp;
 	fmpz_init_set_ui(tmp,gf);
 	fmpz_mod_poly_t G;
 	fmpz_mod_poly_init(G,tmp);
-	//lookuptab();
+	lookuptab(); 
 	gen_poly(G,2*t);
 	fmpz_mod_poly_t B;
 	fmpz_mod_poly_init(B,tmp);
@@ -314,84 +303,3 @@ void encrypt(fmpz_mod_poly_t res,fmpz_mod_poly_t m, long t,long n){    // n util
 	fmpz_clear(tmp);
 }
 
-
-//utile?     test dans decrypt
-// void test_encryptRS(){
-// ////// voir à déclarer de manière global
-
-// 	//init des tableaux
-// 	fmpz_t deux;
-// 	fmpz_init_set_ui(deux,2);
-
-// 	// fmpz_mod_poly_t reduc;
-// 	// fmpz_mod_poly_t* tab=malloc(sizeof(fmpz_mod_poly_t)*16);
-// 	// for(long i=0;i<16;i++){
-// 	// 	fmpz_mod_poly_init(tab[i],deux);
-// 	// }
-// 	// fmpz_t* ptoi=malloc(sizeof(fmpz_t)*16);
-// 	// for(long i=0;i<16;i++){
-// 	// fmpz_init(ptoi[i]);
-// 	// }
-// 	fmpz_t n;
-// 	fmpz_t tmp;
-// 	fmpz_init_set_ui(tmp,16);
-// 	fmpz_init_set_ui(n,4);
-
-
-	
-
-// 	// fmpz_mod_poly_init(reduc, n);
-// 	// fmpz_mod_poly_set_coeff_ui(reduc, 4, 1);
-// 	// fmpz_mod_poly_set_coeff_ui(reduc, 3, 1);
-// 	// fmpz_mod_poly_set_coeff_ui(reduc, 0, 1);
-// 	fmpz_mod_poly_t G;
-// 	fmpz_mod_poly_init(G,tmp);
-// 	lookuptab();
-// 	gen_poly(G,6);
-// 	printf("g:\n");
-// 	fmpz_mod_poly_print(G);
-// 	printf("\n" );
-
-// /////----------------------------------------------
-
-	
-
-// //affichage des tableaux
-// 	printf("tab:\n");
-// 	for(long i=0;i<16;i++){
-// 		printf("\n%d----",i);
-// 		fmpz_mod_poly_print(tab[i]);
-// 		printf("  alpha 	i: ");
-// 		fmpz_print(ptoi[i]); 
-// 	}
-
-	
-
-// 	//test B
-// 	fmpz_mod_poly_t B;
-// 	fmpz_mod_poly_init(B,tmp);
-// 	fmpz_mod_poly_t A;
-// 	fmpz_mod_poly_init(A,tmp);
-// 	fmpz_mod_poly_t R;
-// 	fmpz_mod_poly_init(R,tmp);
-// 	fmpz_mod_poly_set_coeff_ui(A, 8, 9);
-// 	fmpz_mod_poly_set_coeff_ui(A, 7, 8);
-// 	fmpz_mod_poly_set_coeff_ui(A, 6, 7);
-// 	fmpz_mod_poly_set_coeff_ui(A, 5, 6);
-// 	fmpz_mod_poly_set_coeff_ui(A, 4, 5);
-// 	fmpz_mod_poly_set_coeff_ui(A, 3, 4);
-// 	fmpz_mod_poly_set_coeff_ui(A, 2, 3);
-// 	fmpz_mod_poly_set_coeff_ui(A, 1, 2);
-// 	fmpz_mod_poly_set_coeff_ui(A, 0, 1);
-
-// 	fmpz_mod_poly_t X;
-// 	fmpz_mod_poly_init(X,tmp);
-// 	fmpz_mod_poly_set_coeff_ui(X, 6, 1);
-	
-// 	mulPoly(B,A,X);
-// 	findB(R,B,G);
-	
-// 	printf("\nB\n");
-// 	fmpz_mod_poly_print(R);
-// 	printf("\n");
-// }

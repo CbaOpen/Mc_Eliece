@@ -1,5 +1,5 @@
-#ifndef MATRICE_H
-#define MATRICE_H
+#ifndef MCELIECE_H
+#define MCELIECE_H
 
 
 void RPermut(fmpz_mat_t P,long n);

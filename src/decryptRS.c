@@ -22,7 +22,13 @@ extern long gf;
 
 
 
-
+/**
+	Cette fonction evalue un polynome par rapport a une valeur donnée(valeur_x)
+	Elle retourne un fmpz qui contient le résultat
+	
+	A chaque valeur de i il calcule x^i avec x étant la valeur valeur_x
+	Ensuite il récupère a valeur du coefficient de  X qui est a ce ni
+	*/
 void evaluation_fonction(fmpz_t res, fmpz_mod_poly_t fonction,long valeur_x){
 	slong length;
 	fmpz_t temp, temp_coef,val_x,d;
@@ -62,6 +68,10 @@ void evaluation_fonction(fmpz_t res, fmpz_mod_poly_t fonction,long valeur_x){
 
 }
 
+/**
+	Additionne deux polynômes. Vu que nous somme dans le champs gallois,
+	 ceci revient a faire le xor de chaque coefficient
+*/
 void xor_polynome(fmpz_mod_poly_t resu, fmpz_mod_poly_t poly1_v, fmpz_mod_poly_t poly2_v){
 	long deg1, deg2;
 	fmpz_t temp1, temp2,n;
@@ -109,6 +119,9 @@ void xor_polynome(fmpz_mod_poly_t resu, fmpz_mod_poly_t poly1_v, fmpz_mod_poly_t
 
 }
 
+/**
+	Cette fonction multiplie un polynome et un valeur et elle est utilisée dans la fonction de division 
+*/
 void mulPolyInDiv(fmpz_mod_poly_t res,fmpz_mod_poly_t pol2,fmpz_t valeur, long degre_poly )
 {
 
@@ -116,15 +129,12 @@ void mulPolyInDiv(fmpz_mod_poly_t res,fmpz_mod_poly_t pol2,fmpz_t valeur, long d
 	fmpz_t n,d,temp;
 	long deg;
 
-
 	fmpz_init_set_ui(d,2);
 	fmpz_init_set_ui(n,gf);
 	fmpz_init_set_ui(temp,gf);
 	fmpz_mod_poly_init(temp_res,n);
 	fmpz_mod_poly_init(poly_xor,n);
-
-
-	deg= fmpz_mod_poly_degree(pol2);
+	deg=fmpz_mod_poly_degree(pol2);
 	
 	for(long i=0; i<=deg;i++){
 		fmpz_mod_poly_get_coeff_fmpz(temp,pol2,i);
@@ -137,9 +147,8 @@ void mulPolyInDiv(fmpz_mod_poly_t res,fmpz_mod_poly_t pol2,fmpz_t valeur, long d
 
 	}
 
-
 	fmpz_mod_poly_set(res,temp_res);
-
+	
 	fmpz_mod_poly_clear(temp_res);
 	fmpz_mod_poly_clear(poly_xor);
 	fmpz_clear(n);
@@ -150,7 +159,9 @@ void mulPolyInDiv(fmpz_mod_poly_t res,fmpz_mod_poly_t pol2,fmpz_t valeur, long d
 
 }
 
-
+/**
+	Fait la division de deux polynomes et retourne le reste et le quotient
+*/
 void division(fmpz_mod_poly_t q, fmpz_mod_poly_t r, fmpz_mod_poly_t dividente, fmpz_mod_poly_t deviseur){
 	long degr0, degr1,mult_deg;
 	fmpz_mod_poly_t mult, poly_temp, poly_xor, r0,r1;
@@ -230,7 +241,9 @@ void division(fmpz_mod_poly_t q, fmpz_mod_poly_t r, fmpz_mod_poly_t dividente, f
 
 }
 
-////!!!!!! attention n(taille du message) =/= gf
+/**
+Réalise l'algorithm d'euclide étendu pour déterminer les coeficient de bezout qui sont ici des polynômes
+*/
 void algo_euclide( fmpz_mod_poly_t localisation,fmpz_mod_poly_t amplitude , fmpz_mod_poly_t x2t_v, fmpz_mod_poly_t syndrome_v,long tt){
 	fmpz_mod_poly_t poly_temp ,quotient, reste,multi,ampl,local,synd,x2t,syndrome;
 	fmpz_t n;
@@ -291,7 +304,11 @@ void algo_euclide( fmpz_mod_poly_t localisation,fmpz_mod_poly_t amplitude , fmpz
 	fmpz_mod_poly_clear(syndrome);
 }
 
-
+/**
+	
+	Calcule le synidrome d'un polynome  reçu. 
+	Cette algorithme est celui du Chien-Search
+*/
 bool calcul_poly_syndrome(fmpz_mod_poly_t syndrome, fmpz_mod_poly_t data, long tt){
 	bool error=false;
 	fmpz_t coef_sydrome,temp,d;
@@ -316,6 +333,11 @@ bool calcul_poly_syndrome(fmpz_mod_poly_t syndrome, fmpz_mod_poly_t data, long t
 
 }
 
+/**
+	Cette fonction calcule la dérivée d'un polynome dans le corps galois
+	Comme on est dans un corps de caractérisque 2 , la dériveé est définie seulement par les puissances impaires. 
+	Tous les coefficeint avec une puissance paire s'annule.
+	*/
 void derivation(fmpz_mod_poly_t res, fmpz_mod_poly_t function){
 	fmpz_t temp;
 	fmpz_init(temp);
@@ -327,8 +349,10 @@ void derivation(fmpz_mod_poly_t res, fmpz_mod_poly_t function){
 	}
 	fmpz_clear(temp);
 }
-	//!!!!!!!!!   attention pas confondre n(taille du message encodé) avec taille du GF (variable globale gf)
-long decode(fmpz_mod_poly_t data, fmpz_mod_poly_t received ,long tt ){
+
+
+/* decodage d'un code de reed Solomon*/
+void decode(fmpz_mod_poly_t data, fmpz_mod_poly_t received ,long tt ){
 	bool error;
 	long nbr_erreur=0;
 	fmpz_mod_poly_t poly_temp, syndrome, localisation, amplitude,x2t, poly_position,poly_valeur,
@@ -357,35 +381,49 @@ long decode(fmpz_mod_poly_t data, fmpz_mod_poly_t received ,long tt ){
 	fmpz_mod_poly_set_coeff_ui(x2t, tt, 1);
 	fmpz_mod_poly_set_coeff_ui(xt, tt/2, 1);
 
-
+     //Calcule le syndrome et vérifi grace sa sortie si il y d'erreur (True) ou pas (False)
 	error=calcul_poly_syndrome( syndrome, received,tt);
 
-	if(error==false){
+	if(error==false){   // S'il n'ya pas derreur alors le message reçu est égamle au message envoyé
 		fmpz_mod_poly_set(data,received);
 
 	}
-	else{ 	
+	else{ 	// S'il y a d'erreur (error==True)
 
-		algo_euclide(localisation, amplitude ,x2t,syndrome,tt);
-		
-		//Calcule position
-		for(long i=1;i<gf;i++){
+
+		//Calculer L(x)  polynome de localisation ET W(x) le polynome d'Amplitude à l'aide de l'algorithme d'Euclide
+
+		algo_euclide(localisation, amplitude ,x2t,syndrome,tt); 
+
+
+		/*Calcule de la position des erreurs */
+
+		// Chercher les inverses des racines de L(x)
+ 		for(long i=1;i<gf;i++){
 			evaluation_fonction(valeur, localisation, i);
 			if (fmpz_get_ui(valeur)==0)
-			{
-				fmpz_mod_poly_set_coeff_ui(poly_racine,nbr_erreur,i);
+			{	
+				// On stock les racines de L(x)
+				fmpz_mod_poly_set_coeff_ui(poly_racine,nbr_erreur,i); 
 				fmpz_set(temp, ptoi[i]);
 				fmpz_sub(temp,n,temp);
 				fmpz_sub_ui(temp,temp,1);
-				fmpz_mod_poly_set_coeff_fmpz(poly_position,nbr_erreur,temp);
-				nbr_erreur++;
+				//On stock les valeurs de inverses c.a.d les position des erreurs
+				fmpz_mod_poly_set_coeff_fmpz(poly_position,nbr_erreur,temp); 
+				nbr_erreur++;//compter le nombre d'erreur 
 			}
 			fmpz_init(valeur);
 		}
-		//Calcule amplitudes
+
+
+		/*Calcule des valeur des erreurs dans le polynome d'erreur*/
+
+
+		// dérivation du polynome de localisation  L'(x)
 		derivation(derive_localisation,localisation);
 
-		for(long i=0;i<nbr_erreur;i++){
+		//pour chaque bi racine de L(x) calculer W(bi)/L'(bi) 
+		for(long i=0;i<nbr_erreur;i++){ 
 			fmpz_mod_poly_get_coeff_fmpz(temp,poly_racine,i);
 			evaluation_fonction(temp1, derive_localisation, fmpz_get_ui(temp));
 			evaluation_fonction(temp2, amplitude,  fmpz_get_ui(temp));
@@ -395,12 +433,14 @@ long decode(fmpz_mod_poly_t data, fmpz_mod_poly_t received ,long tt ){
 			fmpz_mod_ui(temp1,temp1,gf-1);
 			fmpz_mod_poly_evaluate_fmpz(temp1,tab[fmpz_get_ui(temp1)],d);
 			fmpz_mod_poly_get_coeff_fmpz(temp,poly_position,i);
+			//former le polynome d'erreur en placant chaque valeur calculé à ca place dans le 
 			fmpz_mod_poly_set_coeff_fmpz(poly_error,fmpz_get_ui(temp),temp1);
 			fmpz_init(temp);
 			fmpz_init(temp1);
 			fmpz_init(temp2);
 			
 		}
+		// calculer message envoyé: C(x)= D(x)+E(x)
 		xor_polynome(data, poly_error, received);
 	}
 
@@ -423,91 +463,9 @@ long decode(fmpz_mod_poly_t data, fmpz_mod_poly_t received ,long tt ){
 	fmpz_mod_poly_clear(derive_localisation);
 	fmpz_mod_poly_clear(poly_error);
 	fmpz_mod_poly_clear(xt);
-	return 0;   //!!!!!!!! pourquoi un return ? 
+	  
 }
 
 
-// void test_decode(){
-// 	fmpz_t tmp;
-// 	//fmpz_init_set_ui(tmp,16); //test sur gf16
-// 	fmpz_init_set_ui(tmp,8); //test sur gf8
 
 
-
-// 	gf=8;
-	
-
-// 	/********** Chiffrement ************/
-// 	fmpz_mod_poly_t A;
-// 	fmpz_mod_poly_init(A,tmp);
-	
-// 	//test sur gf16
-// 	// fmpz_mod_poly_set_coeff_ui(A, 8, 8);
-// 	// fmpz_mod_poly_set_coeff_ui(A, 7, 7);
-// 	// fmpz_mod_poly_set_coeff_ui(A, 6, 6);
-// 	// fmpz_mod_poly_set_coeff_ui(A, 5, 5);
-// 	// fmpz_mod_poly_set_coeff_ui(A, 4, 4);
-// 	// fmpz_mod_poly_set_coeff_ui(A, 3, 3);
-// 	fmpz_mod_poly_set_coeff_ui(A, 2, 2);
-// 	fmpz_mod_poly_set_coeff_ui(A, 1, 1);
-// 	fmpz_mod_poly_set_coeff_ui(A, 0, 2);
-	
-
-// 	fmpz_mod_poly_t received;
-// 	fmpz_mod_poly_init(received,tmp);
-// 	// encrypt(received,A,3,45); //test t=3   //n utile ?
-// 	//encrypt(received,A,4,45); //test avec t=4
-// 	encrypt(received,A,2,9); //test avec t=2
-	
-
-// 		//affichage des tableaux
-// 	printf("tab:\n");
-// 	for(long i=0;i<gf;i++){
-// 		printf("\n%d ----",i);
-// 		fmpz_mod_poly_print(tab[i]);
-// 		printf("  alpha 	i: ");
-// 		fmpz_print(ptoi[i]); 
-// 	}
-// 	printf("\n");
-
-
-// 	printf("message clair = ");
-// 	fmpz_mod_poly_print(A);
-// 	printf("\n");
-// 	printf("message chiffré = ");
-// 	fmpz_mod_poly_print(received);
-// 	printf("\n");
-	
-// 	/*********** Dechiffrement avec erreurs injectée ***********/
-// 	fmpz_mod_poly_t X;
-// 	fmpz_mod_poly_init(X,tmp);
-
-// 	// test pour t=3/4 gf16
-// 	// fmpz_mod_poly_set_coeff_ui(received, 12, 10);
-// 	// fmpz_mod_poly_set_coeff_ui(received, 11, 10);
-// 	// fmpz_mod_poly_set_coeff_ui(received, 10, 10);
-// 	// fmpz_mod_poly_set_coeff_ui(received, 9, 10); //test t=4
-
-// 	// test pour t=2  gf8
-// 	fmpz_mod_poly_set_coeff_ui(received, 5, 3);
-// 	fmpz_mod_poly_set_coeff_ui(received, 6, 3);
-
-
-
-// 	printf("\n");
-// 	printf("message avec erreurs =");
-// 	fmpz_mod_poly_print(received);
-// 	printf("\n");
-// 	//decode(X,received,16,6); //test t=3
-// 	//decode(X,received,8);// test t=4
-// 	decode(X,received,4);// test t=2
-// 	printf("Dechiffrement = ");
-// 	fmpz_mod_poly_print(X);
-// 	printf("\n");
-
-// 	fmpz_mod_poly_clear(received);
-// 	fmpz_mod_poly_clear(X);
-// 	fmpz_clear(tmp);
-	
-
-// }

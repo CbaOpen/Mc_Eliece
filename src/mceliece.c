@@ -1,21 +1,17 @@
 #include <flint/fmpz.h>
 #include <stdio.h>
-#include <flint/fmpz_poly.h>
-#include "encryptRS.h"
-#include "decryptRS.h"
 #include <unistd.h>
 #include <time.h>
-#include <math.h>
-
 #include <math.h>
 #include <flint/fmpz_poly.h>
 #include <flint/fmpz_mat.h>
 #include <flint/fmpz_mod_poly.h>
 #include "../inc/encryptRS.h"
+#include "../inc/mceliece.h"
 #include "../inc/decryptRS.h"
 #include "../inc/main.h"	
 #include <stdlib.h>
-#include <time.h>
+
 
 
 extern fmpz_mod_poly_t reduc;
@@ -27,7 +23,7 @@ long gf;
 
 
 
-														//row op1, col1=row2,col op2
+/*multiplie deux mattrices dans le champ galois, n : nombre de ligne de op1, p : nombre de colonne de op1=nb ligne de op2, m : nb colonne op2 */
 void multGFmat(fmpz_mat_t res,fmpz_mat_t op1,fmpz_mat_t op2,long n,long p,long m){
 	fmpz_t tmp,tmp2;
 	fmpz_init(tmp);
@@ -39,27 +35,21 @@ void multGFmat(fmpz_mat_t res,fmpz_mat_t op1,fmpz_mat_t op2,long n,long p,long m
 		for(long j=0;j<m;j++){
 			fmpz_init_set_ui(fmpz_mat_entry(res, i, j),0);
 			for(long k=0;k<p;k++){
-					fmpz_set(o1,fmpz_mat_entry(op1, i, k));
-
-					//printf("k :   %ld\no1",k);
-					//fmpz_print(o1);
-					//printf("\n");	
-					//fmpz_print(ptoi[fmpz_get_ui(o1)]);
-					fmpz_set(o1,ptoi[fmpz_get_ui(o1)]);    //alplha op1
-					fmpz_set(o2,fmpz_mat_entry(op2, k, j));
-					fmpz_set(o2,ptoi[fmpz_get_ui(o2)]);
-					if(fmpz_is_zero(o1) || fmpz_is_zero(o2)){
-						fmpz_set_ui(o1,0);
-
-					}
-					else{
-						fmpz_add(o1,o1,o2);
-						fmpz_mod_ui(o1,o1,gf-1);
-						tab[fmpz_get_ui(o1)]->p=gf;
-						fmpz_set(o2,o1);
-						fmpz_mod_poly_evaluate_fmpz(o1,tab[fmpz_get_ui(o1)],DEUX);
-					}
-					fmpz_xor(fmpz_mat_entry(res, i, j),fmpz_mat_entry(res, i, j),o1);
+				fmpz_set(o1,fmpz_mat_entry(op1, i, k));
+				fmpz_set(o1,ptoi[fmpz_get_ui(o1)]);   
+				fmpz_set(o2,fmpz_mat_entry(op2, k, j));
+				fmpz_set(o2,ptoi[fmpz_get_ui(o2)]);
+				if(fmpz_is_zero(o1) || fmpz_is_zero(o2)){
+					fmpz_set_ui(o1,0);
+				}
+				else{
+					fmpz_add(o1,o1,o2);
+					fmpz_mod_ui(o1,o1,gf-1);
+					tab[fmpz_get_ui(o1)]->p=gf;
+					fmpz_set(o2,o1);
+					fmpz_mod_poly_evaluate_fmpz(o1,tab[fmpz_get_ui(o1)],DEUX);
+				}
+				fmpz_xor(fmpz_mat_entry(res, i, j),fmpz_mat_entry(res, i, j),o1);
 			}
 		}
 	}
@@ -68,11 +58,14 @@ void multGFmat(fmpz_mat_t res,fmpz_mat_t op1,fmpz_mat_t op2,long n,long p,long m
 	fmpz_clear(o1);
 	fmpz_clear(o2);
 }
+
+
+/* génère la matrice de permutation P aléatoirement */
 void RPermut(fmpz_mat_t P,long n){
 long tabP[n]	;
 long long j;
 long temp;
-srandom(getpid()+time(NULL));
+srandom(getpid()+time(NULL)); //algo de Fisher-Yates pour créer les permutations
 	for(long i=0;i<n;i++){
 		tabP[i]=i;
 	}
@@ -92,7 +85,7 @@ srandom(getpid()+time(NULL));
 }
 
 
-
+/* génère la matrice inversible S*/
 void get_S(fmpz_mat_t S,long k){
 	
 	srandom(getpid()+time(NULL));
@@ -101,8 +94,8 @@ void get_S(fmpz_mat_t S,long k){
 	fmpz_t det;
 	fmpz_init(det);
 	fmpz_mat_randrank(S , rand ,k , 1);
-	long r=random()%100000;
-	for(long i=0;i<r;i++){
+	long r=random()%(k*k);  //création d'aléatoire 
+	for(long i=0;i<r;i++){    //appel multiple pour créer des matrices différentes à chaque exécution
 		fmpz_mat_randrank(S , rand ,k , 1);
 	}
 	fmpz_clear(det);
@@ -110,12 +103,11 @@ void get_S(fmpz_mat_t S,long k){
 }
 
 
+/* créée la matrice génératrice à partir du polynome générateur */
 void get_G(fmpz_mat_t Gm,fmpz_mod_poly_t G,long n,long k){
 	fmpz_mat_zero(Gm);
 	fmpz_t coeff;
 	fmpz_init(coeff);
-
-
 	for(long i=0;i<k;i++){
 		for(long j=i;j<fmpz_mod_poly_length(G)+i;j++){
 			fmpz_mod_poly_get_coeff_fmpz(coeff,G,j-i);
@@ -126,19 +118,13 @@ void get_G(fmpz_mat_t Gm,fmpz_mod_poly_t G,long n,long k){
 	fmpz_clear(coeff);
 }
 
-
+/* génère les clé publique et privé et les notes dans des fichiers */
 void keygen(fmpz_mat_t key,long n,long k){
-	//verif t
 	long tt=(n-k);
-	//verif gf
-	
 	long m = log(n+1)/log(2);
 	init_tabs(m);
-
-	 //appel fonction d'init de var global de main.c
 	get_reduc(m);
 	lookuptab();
-
 	fmpz_mat_t tmpM,P,S,Gm;
 	fmpz_mod_poly_t G;
 	fmpz_t tmp;
@@ -151,9 +137,6 @@ void keygen(fmpz_mat_t key,long n,long k){
 	RPermut(P,n);
 	get_S(S,k);
 	gen_poly(G,tt);
-	
-
-
 	FILE* fpriv=fopen("KEYpriv","w");
 	if(fpriv == NULL){printf("le fichier de la clé privé n'as pas pu être ouvert\n");exit(1);}
 	get_G(Gm,G,n,k);
@@ -182,7 +165,7 @@ void keygen(fmpz_mat_t key,long n,long k){
 }
 
 
-
+/*génère le vecteur d'erreur E */
 void Gen_E(fmpz_mat_t E,long n,long t){
 	long temp;
 	long j;
@@ -216,14 +199,14 @@ void Gen_E(fmpz_mat_t E,long n,long t){
 }
 
 
-
+/* chiffrement de McEliece */
 void Encrypt_McEliece(FILE* c,int* m,fmpz_mat_t key,long t,long k,long n){
 	fmpz_mat_t msg,res;
 	fmpz_mat_t E;
 	fmpz_mat_init(E,1,n);
 	fmpz_mat_init(msg,1,k);
 	fmpz_mat_init(res,1,n);
-
+	//récuparation du message dans une matrice
 	for(long i=0;i<k;i++){
 		fmpz_set_ui(fmpz_mat_entry(msg, 0,i),m[i]);	
 	}
@@ -234,8 +217,8 @@ void Encrypt_McEliece(FILE* c,int* m,fmpz_mat_t key,long t,long k,long n){
 		fmpz_xor(fmpz_mat_entry(res, 0, i),fmpz_mat_entry(res, 0, i),fmpz_mat_entry(E, 0, i));
 
 	}
+	//écriture fichier 
 	for(long i=0;i<n;i++){
-		
 		fputc(fmpz_get_ui(fmpz_mat_entry(res, 0, i)),c);
 
 	}
@@ -247,7 +230,7 @@ void Encrypt_McEliece(FILE* c,int* m,fmpz_mat_t key,long t,long k,long n){
 
 
 
-// void Decrypt_McElieceMc_Eliece(fmpz_mat_t c,fmpz_mat_t P,fmpz_mat_t S,fmpz_mat_t G){
+/* dechiffrement de McEliece */
 void Decrypt_McEliece(FILE* chiffre,long n,long k,long t,FILE* keys,FILE* msg){
 	 
 	fmpz_t d;
@@ -273,51 +256,45 @@ void Decrypt_McEliece(FILE* chiffre,long n,long k,long t,FILE* keys,FILE* msg){
 	}
 
 
-
-
-	 fmpz_mat_t Si,Pi,res,fres;
-	 fmpz_t den;
-	 fmpz_init(den);
-	 fmpz_mat_init(Pi,n,n);
-	 fmpz_mat_init(Si,k,k);
-	 fmpz_mat_init(res,1,n);
-	 fmpz_mat_init(fres,1,k);
-	  fmpz_mat_transpose(Pi,P);
-	 fmpz_mat_inv(Si , den , S);
-	 
-
-	 fmpz_mat_mul(res,c,Pi);
-	//fmpz_mat_mul(res,c,Pi);
-
-
-	 fmpz_mod_poly_t data,received;
-	 fmpz_mod_poly_init(data,d);
-	 fmpz_mod_poly_init(received,d);
-	 for(long i=0;i<n;i++){
-	 	fmpz_mod_poly_set_coeff_fmpz(received,i,fmpz_mat_entry(res,0,i));
-	 }
-	 decode(data,received,2*t);
-	 fmpz_mat_clear(res);
-	 fmpz_mat_init(res,1,k);
-
-	 fmpz_mod_poly_t q;
-	 fmpz_mod_poly_t r;
-	 fmpz_mod_poly_t G;
-	 fmpz_mod_poly_init(q,d);
-	 fmpz_mod_poly_init(r,d);
-	 fmpz_mod_poly_init(G,d);
-
+	fmpz_mat_t Si,Pi,res,fres;
+	fmpz_t den;
+	fmpz_init(den);
+	fmpz_mat_init(Pi,n,n);
+	fmpz_mat_init(Si,k,k);
+	fmpz_mat_init(res,1,n);
+	fmpz_mat_init(fres,1,k);
+	fmpz_mat_transpose(Pi,P);
+	fmpz_mat_inv(Si , den , S);
+	fmpz_mat_mul(res,c,Pi);
+	fmpz_mod_poly_t data,received;
+	fmpz_mod_poly_init(data,d);
+	fmpz_mod_poly_init(received,d);
+	for(long i=0;i<n;i++){
+		fmpz_mod_poly_set_coeff_fmpz(received,i,fmpz_mat_entry(res,0,i));
+	}
+	decode(data,received,2*t);
+	fmpz_mat_clear(res);
+	fmpz_mat_init(res,1,k);
+	fmpz_mod_poly_t q;
+	fmpz_mod_poly_t r;
+	fmpz_mod_poly_t G;
+	fmpz_mod_poly_init(q,d);
+	fmpz_mod_poly_init(r,d);
+	fmpz_mod_poly_init(G,d);
+	//recuperation du polynome générateur dans la matrice génératrice
 	for(long i=0;i<=2*t;i++){
 	 	fmpz_mod_poly_set_coeff_fmpz(G,i,fmpz_mat_entry(Gm,0,i));
 	 }
+	 //division de c~ par G
 	 division(q,r,data,G);
  	for(long i=0;i<k;i++){
 		fmpz_mod_poly_get_coeff_fmpz(fmpz_mat_entry(res,0,i),q,i);
 	  }
 	  fmpz_mat_mul(res,res,Si);
+
+	  //écrit le message dans la fichier
 	  for(long i=0;i<k;i++){
 	  	fmpz_abs(fmpz_mat_entry(res, 0, i),fmpz_mat_entry(res, 0, i));
-
 	  	fputc(fmpz_get_ui(fmpz_mat_entry(res, 0, i)),msg);
 	  }
 
