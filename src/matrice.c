@@ -22,24 +22,29 @@ extern fmpz_mod_poly_t reduc;
 extern fmpz_mod_poly_t* tab;
 extern fmpz_t* ptoi;
 extern fmpz_t DEUX;    
-int gf;	
+long gf;	
 
 
 
 
 														//row op1, col1=row2,col op2
-void multGFmat(fmpz_mat_t res,fmpz_mat_t op1,fmpz_mat_t op2,int n,int p,int m){
+void multGFmat(fmpz_mat_t res,fmpz_mat_t op1,fmpz_mat_t op2,long n,long p,long m){
 	fmpz_t tmp,tmp2;
 	fmpz_init(tmp);
 	fmpz_init(tmp2);
 	fmpz_t o1,o2;
 	fmpz_init(o1);
 	fmpz_init(o2);
-	for(int i=0;i<n;i++){
-		for(int j=0;j<m;j++){
+	for(long i=0;i<n;i++){
+		for(long j=0;j<m;j++){
 			fmpz_init_set_ui(fmpz_mat_entry(res, i, j),0);
-			for(int k=0;k<p;k++){
+			for(long k=0;k<p;k++){
 					fmpz_set(o1,fmpz_mat_entry(op1, i, k));
+
+					//printf("k :   %ld\no1",k);
+					//fmpz_print(o1);
+					//printf("\n");	
+					//fmpz_print(ptoi[fmpz_get_ui(o1)]);
 					fmpz_set(o1,ptoi[fmpz_get_ui(o1)]);    //alplha op1
 					fmpz_set(o2,fmpz_mat_entry(op2, k, j));
 					fmpz_set(o2,ptoi[fmpz_get_ui(o2)]);
@@ -63,16 +68,16 @@ void multGFmat(fmpz_mat_t res,fmpz_mat_t op1,fmpz_mat_t op2,int n,int p,int m){
 	fmpz_clear(o1);
 	fmpz_clear(o2);
 }
-void RPermut(fmpz_mat_t P,int n){
-int tabP[n]	;
-long int j;
-int temp;
+void RPermut(fmpz_mat_t P,long n){
+long tabP[n]	;
+long long j;
+long temp;
 srandom(getpid()+time(NULL));
-	for(int i=0;i<n;i++){
+	for(long i=0;i<n;i++){
 		tabP[i]=i;
 	}
 	
-	for(int i=n-1;i>0;i--){
+	for(long i=n-1;i>0;i--){
 		j = random()%i;
 		temp=tabP[i];
 		tabP[i]=tabP[j];
@@ -80,7 +85,7 @@ srandom(getpid()+time(NULL));
 
 	}
 
-	for(int i=0;i<n;i++){
+	for(long i=0;i<n;i++){
 		fmpz_set_ui(fmpz_mat_entry(P, i, tabP[i]), 1);
 	}
 
@@ -88,7 +93,7 @@ srandom(getpid()+time(NULL));
 
 
 
-void get_S(fmpz_mat_t S,int k){
+void get_S(fmpz_mat_t S,long k){
 	
 	srandom(getpid()+time(NULL));
 	flint_rand_t rand;
@@ -96,8 +101,8 @@ void get_S(fmpz_mat_t S,int k){
 	fmpz_t det;
 	fmpz_init(det);
 	fmpz_mat_randrank(S , rand ,k , 1);
-	int r=random()%100000;
-	for(int i=0;i<r;i++){
+	long r=random()%100000;
+	for(long i=0;i<r;i++){
 		fmpz_mat_randrank(S , rand ,k , 1);
 	}
 	fmpz_clear(det);
@@ -105,14 +110,14 @@ void get_S(fmpz_mat_t S,int k){
 }
 
 
-void get_G(fmpz_mat_t Gm,fmpz_mod_poly_t G,int n,int k){
+void get_G(fmpz_mat_t Gm,fmpz_mod_poly_t G,long n,long k){
 	fmpz_mat_zero(Gm);
 	fmpz_t coeff;
 	fmpz_init(coeff);
 
 
-	for(int i=0;i<k;i++){
-		for(int j=i;j<fmpz_mod_poly_length(G)+i;j++){
+	for(long i=0;i<k;i++){
+		for(long j=i;j<fmpz_mod_poly_length(G)+i;j++){
 			fmpz_mod_poly_get_coeff_fmpz(coeff,G,j-i);
 			fmpz_set(fmpz_mat_entry(Gm, i,j),coeff);		
 		}
@@ -122,12 +127,12 @@ void get_G(fmpz_mat_t Gm,fmpz_mod_poly_t G,int n,int k){
 }
 
 
-void keygen(fmpz_mat_t key,int n,int k){
+void keygen(fmpz_mat_t key,long n,long k){
 	//verif t
-	int tt=(n-k);
+	long tt=(n-k);
 	//verif gf
 	
-	int m = log(n+1)/log(2);
+	long m = log(n+1)/log(2);
 	init_tabs(m);
 
 	 //appel fonction d'init de var global de main.c
@@ -150,6 +155,7 @@ void keygen(fmpz_mat_t key,int n,int k){
 
 
 	FILE* fpriv=fopen("KEYpriv","w");
+	if(fpriv == NULL){printf("le fichier de la clé privé n'as pas pu être ouvert\n");exit(1);}
 	get_G(Gm,G,n,k);
 	fmpz_mat_fprint(fpriv,P);
 	fputs(" ",fpriv);
@@ -160,6 +166,7 @@ void keygen(fmpz_mat_t key,int n,int k){
 	fmpz_mat_mul(Gm,tmpM,P);
 	fmpz_mat_set(key,Gm);
 	FILE* fpub=fopen("KEYpub","w");
+	if(fpub == NULL){printf("le fichier de la clé public n'as pas pu être ouvert\n");exit(1);}
 	fmpz_mat_fprint(fpub,key);
 	
 	fclose(fpub);
@@ -176,19 +183,19 @@ void keygen(fmpz_mat_t key,int n,int k){
 
 
 
-void Gen_E(fmpz_mat_t E,int n,int t){
-	int temp;
-	int j;
-	int tabP[n]	;
+void Gen_E(fmpz_mat_t E,long n,long t){
+	long temp;
+	long j;
+	long tabP[n]	;
 
-	for(int i=0;i<t;i++){
+	for(long i=0;i<t;i++){
 		tabP[i]=1;
 	}
-	for(int i=t;i<n;i++){
+	for(long i=t;i<n;i++){
 		tabP[i]=0;
 	}
 	
-	for(int i=n-1;i>0;i--){
+	for(long i=n-1;i>0;i--){
 		j = random()%i;
 		temp=tabP[i];
 		tabP[i]=tabP[j];
@@ -196,7 +203,7 @@ void Gen_E(fmpz_mat_t E,int n,int t){
 
 	}
 
-	for(int i=0;i<n;i++){
+	for(long i=0;i<n;i++){
 		if(tabP[i]==1){
 			fmpz_set_ui(fmpz_mat_entry(E, 0, i),(random()%(gf-1))+1 );
 			
@@ -210,24 +217,24 @@ void Gen_E(fmpz_mat_t E,int n,int t){
 
 
 
-void Encrypt_McEliece(FILE* c,int* m,fmpz_mat_t key,int t,int k,int n){
+void Encrypt_McEliece(FILE* c,int* m,fmpz_mat_t key,long t,long k,long n){
 	fmpz_mat_t msg,res;
 	fmpz_mat_t E;
 	fmpz_mat_init(E,1,n);
 	fmpz_mat_init(msg,1,k);
 	fmpz_mat_init(res,1,n);
 
-	for(int i=0;i<k;i++){
+	for(long i=0;i<k;i++){
 		fmpz_set_ui(fmpz_mat_entry(msg, 0,i),m[i]);	
 	}
 	multGFmat(res,msg,key,1,k,n);
 	Gen_E(E,n,t);
 	//E XOR res
-	for(int i=0;i<n;i++){
+	for(long i=0;i<n;i++){
 		fmpz_xor(fmpz_mat_entry(res, 0, i),fmpz_mat_entry(res, 0, i),fmpz_mat_entry(E, 0, i));
 
 	}
-	for(int i=0;i<n;i++){
+	for(long i=0;i<n;i++){
 		
 		fputc(fmpz_get_ui(fmpz_mat_entry(res, 0, i)),c);
 
@@ -241,7 +248,7 @@ void Encrypt_McEliece(FILE* c,int* m,fmpz_mat_t key,int t,int k,int n){
 
 
 // void Decrypt_McElieceMc_Eliece(fmpz_mat_t c,fmpz_mat_t P,fmpz_mat_t S,fmpz_mat_t G){
-void Decrypt_McEliece(FILE* chiffre,int n,int k,int t,FILE* keys,FILE* msg){
+void Decrypt_McEliece(FILE* chiffre,long n,long k,long t,FILE* keys,FILE* msg){
 	 
 	fmpz_t d;
 	fmpz_init_set_ui(d,gf);	
@@ -261,7 +268,7 @@ void Decrypt_McEliece(FILE* chiffre,int n,int k,int t,FILE* keys,FILE* msg){
 	fmpz_mat_t c;
 	fmpz_mat_init(c,1,n);
 
-	for(int i=0;i<n;i++){
+	for(long i=0;i<n;i++){
 		fmpz_set_ui(fmpz_mat_entry(c,0,i),fgetc(chiffre));
 	}
 
@@ -280,13 +287,13 @@ void Decrypt_McEliece(FILE* chiffre,int n,int k,int t,FILE* keys,FILE* msg){
 	 
 
 	 fmpz_mat_mul(res,c,Pi);
-	 fmpz_mat_mul(res,c,Pi);
+	//fmpz_mat_mul(res,c,Pi);
 
 
 	 fmpz_mod_poly_t data,received;
 	 fmpz_mod_poly_init(data,d);
 	 fmpz_mod_poly_init(received,d);
-	 for(int i=0;i<n;i++){
+	 for(long i=0;i<n;i++){
 	 	fmpz_mod_poly_set_coeff_fmpz(received,i,fmpz_mat_entry(res,0,i));
 	 }
 	 decode(data,received,2*t);
@@ -300,15 +307,15 @@ void Decrypt_McEliece(FILE* chiffre,int n,int k,int t,FILE* keys,FILE* msg){
 	 fmpz_mod_poly_init(r,d);
 	 fmpz_mod_poly_init(G,d);
 
-	for(int i=0;i<=2*t;i++){
+	for(long i=0;i<=2*t;i++){
 	 	fmpz_mod_poly_set_coeff_fmpz(G,i,fmpz_mat_entry(Gm,0,i));
 	 }
 	 division(q,r,data,G);
- 	for(int i=0;i<k;i++){
+ 	for(long i=0;i<k;i++){
 		fmpz_mod_poly_get_coeff_fmpz(fmpz_mat_entry(res,0,i),q,i);
 	  }
 	  fmpz_mat_mul(res,res,Si);
-	  for(int i=0;i<k;i++){
+	  for(long i=0;i<k;i++){
 	  	fmpz_abs(fmpz_mat_entry(res, 0, i),fmpz_mat_entry(res, 0, i));
 
 	  	fputc(fmpz_get_ui(fmpz_mat_entry(res, 0, i)),msg);

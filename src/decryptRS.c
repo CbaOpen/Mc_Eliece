@@ -16,14 +16,14 @@ extern fmpz_mod_poly_t reduc;
 extern fmpz_mod_poly_t* tab;
 extern fmpz_t* ptoi;
 extern fmpz_t DEUX;
-extern int gf;
+extern long gf;
 
 
 
 
 
 
-void evaluation_fonction(fmpz_t res, fmpz_mod_poly_t fonction,int valeur_x){
+void evaluation_fonction(fmpz_t res, fmpz_mod_poly_t fonction,long valeur_x){
 	slong length;
 	fmpz_t temp, temp_coef,val_x,d;
 	fmpz_init_set_ui(d,2);
@@ -35,7 +35,7 @@ void evaluation_fonction(fmpz_t res, fmpz_mod_poly_t fonction,int valeur_x){
 	fmpz_mod_poly_get_coeff_fmpz ( res, fonction, 0 );
 	length = fmpz_mod_poly_length ( fonction);
 
-	for (int i=1;i<length;i++){
+	for (long i=1;i<length;i++){
 
 		fmpz_set(temp,val_x);
 		fmpz_mul_ui(temp, temp, i);
@@ -63,7 +63,7 @@ void evaluation_fonction(fmpz_t res, fmpz_mod_poly_t fonction,int valeur_x){
 }
 
 void xor_polynome(fmpz_mod_poly_t resu, fmpz_mod_poly_t poly1_v, fmpz_mod_poly_t poly2_v){
-	int deg1, deg2;
+	long deg1, deg2;
 	fmpz_t temp1, temp2,n;
 	fmpz_mod_poly_t poly1,poly2, res;
 	fmpz_init_set_ui(n,gf);
@@ -80,7 +80,7 @@ void xor_polynome(fmpz_mod_poly_t resu, fmpz_mod_poly_t poly1_v, fmpz_mod_poly_t
 	deg2 = fmpz_mod_poly_length (poly2);
 
 	if(deg1<=deg2){
-		for (int i = 0; i < deg2; ++i)
+		for (long i = 0; i < deg2; ++i)
 		{ 
 			fmpz_mod_poly_get_coeff_fmpz(temp1,poly1,i);
 			fmpz_mod_poly_get_coeff_fmpz(temp2,poly2,i);
@@ -90,7 +90,7 @@ void xor_polynome(fmpz_mod_poly_t resu, fmpz_mod_poly_t poly1_v, fmpz_mod_poly_t
 		}
 	}
 	else
-		for (int i = 0; i < deg1; ++i){
+		for (long i = 0; i < deg1; ++i){
 			fmpz_mod_poly_get_coeff_fmpz(temp1,poly1,i);
 			fmpz_mod_poly_get_coeff_fmpz(temp2,poly2,i);
 			fmpz_xor(temp1,temp1,temp2);
@@ -109,12 +109,12 @@ void xor_polynome(fmpz_mod_poly_t resu, fmpz_mod_poly_t poly1_v, fmpz_mod_poly_t
 
 }
 
-void mulPolyInDiv(fmpz_mod_poly_t res,fmpz_mod_poly_t pol2,fmpz_t valeur, int degre_poly )
+void mulPolyInDiv(fmpz_mod_poly_t res,fmpz_mod_poly_t pol2,fmpz_t valeur, long degre_poly )
 {
 
 	fmpz_mod_poly_t temp_res, poly_xor;
 	fmpz_t n,d,temp;
-	int deg;
+	long deg;
 
 
 	fmpz_init_set_ui(d,2);
@@ -126,7 +126,7 @@ void mulPolyInDiv(fmpz_mod_poly_t res,fmpz_mod_poly_t pol2,fmpz_t valeur, int de
 
 	deg= fmpz_mod_poly_degree(pol2);
 	
-	for(int i=0; i<=deg;i++){
+	for(long i=0; i<=deg;i++){
 		fmpz_mod_poly_get_coeff_fmpz(temp,pol2,i);
 		if(fmpz_get_ui(temp)!=0){
 			fmpz_add(temp,ptoi[fmpz_get_ui(temp)],ptoi[fmpz_get_ui(valeur)]);
@@ -152,7 +152,7 @@ void mulPolyInDiv(fmpz_mod_poly_t res,fmpz_mod_poly_t pol2,fmpz_t valeur, int de
 
 
 void division(fmpz_mod_poly_t q, fmpz_mod_poly_t r, fmpz_mod_poly_t dividente, fmpz_mod_poly_t deviseur){
-	int degr0, degr1,mult_deg;
+	long degr0, degr1,mult_deg;
 	fmpz_mod_poly_t mult, poly_temp, poly_xor, r0,r1;
 	fmpz_t alph,n,d,temp,temp1,temp2,mult_temp;
 
@@ -231,7 +231,7 @@ void division(fmpz_mod_poly_t q, fmpz_mod_poly_t r, fmpz_mod_poly_t dividente, f
 }
 
 ////!!!!!! attention n(taille du message) =/= gf
-void algo_euclide( fmpz_mod_poly_t localisation,fmpz_mod_poly_t amplitude , fmpz_mod_poly_t x2t_v, fmpz_mod_poly_t syndrome_v,int tt){
+void algo_euclide( fmpz_mod_poly_t localisation,fmpz_mod_poly_t amplitude , fmpz_mod_poly_t x2t_v, fmpz_mod_poly_t syndrome_v,long tt){
 	fmpz_mod_poly_t poly_temp ,quotient, reste,multi,ampl,local,synd,x2t,syndrome;
 	fmpz_t n;
 
@@ -253,7 +253,7 @@ void algo_euclide( fmpz_mod_poly_t localisation,fmpz_mod_poly_t amplitude , fmpz
 	fmpz_mod_poly_set_coeff_ui(ampl,0,1);
 	fmpz_mod_poly_set(synd,syndrome);
 
-	int i=2, deg_reste=0;
+	long i=2, deg_reste=0;
 
 
 	while(deg_reste>(tt/2)|| i==2) {
@@ -292,14 +292,14 @@ void algo_euclide( fmpz_mod_poly_t localisation,fmpz_mod_poly_t amplitude , fmpz
 }
 
 
-bool calcul_poly_syndrome(fmpz_mod_poly_t syndrome, fmpz_mod_poly_t data, int tt){
+bool calcul_poly_syndrome(fmpz_mod_poly_t syndrome, fmpz_mod_poly_t data, long tt){
 	bool error=false;
 	fmpz_t coef_sydrome,temp,d;
 	fmpz_init_set_ui(d,2); 
 	fmpz_init(coef_sydrome);
 	fmpz_init(temp);
 
-		for(int i=1; i<=tt;i++){
+		for(long i=1; i<=tt;i++){
 			 tab[i]->p=gf;
 			fmpz_mod_poly_evaluate_fmpz(temp,tab[i],d);
 			evaluation_fonction(coef_sydrome, data,fmpz_get_ui(temp));
@@ -319,18 +319,18 @@ bool calcul_poly_syndrome(fmpz_mod_poly_t syndrome, fmpz_mod_poly_t data, int tt
 void derivation(fmpz_mod_poly_t res, fmpz_mod_poly_t function){
 	fmpz_t temp;
 	fmpz_init(temp);
-	int deg=fmpz_mod_poly_length(function);
+	long deg=fmpz_mod_poly_length(function);
 
-	for(int i=1; i<deg;i+=2){
+	for(long i=1; i<deg;i+=2){
 		fmpz_mod_poly_get_coeff_fmpz(temp,function,i);
 		fmpz_mod_poly_set_coeff_fmpz(res,i-1,temp);
 	}
 	fmpz_clear(temp);
 }
 	//!!!!!!!!!   attention pas confondre n(taille du message encodé) avec taille du GF (variable globale gf)
-int decode(fmpz_mod_poly_t data, fmpz_mod_poly_t received ,int tt ){
+long decode(fmpz_mod_poly_t data, fmpz_mod_poly_t received ,long tt ){
 	bool error;
-	int nbr_erreur=0;
+	long nbr_erreur=0;
 	fmpz_mod_poly_t poly_temp, syndrome, localisation, amplitude,x2t, poly_position,poly_valeur,
 	 poly_racine,derive_localisation ,poly_error,xt;
 	
@@ -369,7 +369,7 @@ int decode(fmpz_mod_poly_t data, fmpz_mod_poly_t received ,int tt ){
 		algo_euclide(localisation, amplitude ,x2t,syndrome,tt);
 		
 		//Calcule position
-		for(int i=1;i<gf;i++){
+		for(long i=1;i<gf;i++){
 			evaluation_fonction(valeur, localisation, i);
 			if (fmpz_get_ui(valeur)==0)
 			{
@@ -385,7 +385,7 @@ int decode(fmpz_mod_poly_t data, fmpz_mod_poly_t received ,int tt ){
 		//Calcule amplitudes
 		derivation(derive_localisation,localisation);
 
-		for(int i=0;i<nbr_erreur;i++){
+		for(long i=0;i<nbr_erreur;i++){
 			fmpz_mod_poly_get_coeff_fmpz(temp,poly_racine,i);
 			evaluation_fonction(temp1, derive_localisation, fmpz_get_ui(temp));
 			evaluation_fonction(temp2, amplitude,  fmpz_get_ui(temp));
@@ -427,87 +427,87 @@ int decode(fmpz_mod_poly_t data, fmpz_mod_poly_t received ,int tt ){
 }
 
 
-void test_decode(){
-	fmpz_t tmp;
-	//fmpz_init_set_ui(tmp,16); //test sur gf16
-	fmpz_init_set_ui(tmp,8); //test sur gf8
+// void test_decode(){
+// 	fmpz_t tmp;
+// 	//fmpz_init_set_ui(tmp,16); //test sur gf16
+// 	fmpz_init_set_ui(tmp,8); //test sur gf8
 
 
 
-	gf=8;
+// 	gf=8;
 	
 
-	/********** Chiffrement ************/
-	fmpz_mod_poly_t A;
-	fmpz_mod_poly_init(A,tmp);
+// 	/********** Chiffrement ************/
+// 	fmpz_mod_poly_t A;
+// 	fmpz_mod_poly_init(A,tmp);
 	
-	//test sur gf16
-	// fmpz_mod_poly_set_coeff_ui(A, 8, 8);
-	// fmpz_mod_poly_set_coeff_ui(A, 7, 7);
-	// fmpz_mod_poly_set_coeff_ui(A, 6, 6);
-	// fmpz_mod_poly_set_coeff_ui(A, 5, 5);
-	// fmpz_mod_poly_set_coeff_ui(A, 4, 4);
-	// fmpz_mod_poly_set_coeff_ui(A, 3, 3);
-	fmpz_mod_poly_set_coeff_ui(A, 2, 2);
-	fmpz_mod_poly_set_coeff_ui(A, 1, 1);
-	fmpz_mod_poly_set_coeff_ui(A, 0, 2);
-	
-
-	fmpz_mod_poly_t received;
-	fmpz_mod_poly_init(received,tmp);
-	// encrypt(received,A,3,45); //test t=3   //n utile ?
-	//encrypt(received,A,4,45); //test avec t=4
-	encrypt(received,A,2,9); //test avec t=2
+// 	//test sur gf16
+// 	// fmpz_mod_poly_set_coeff_ui(A, 8, 8);
+// 	// fmpz_mod_poly_set_coeff_ui(A, 7, 7);
+// 	// fmpz_mod_poly_set_coeff_ui(A, 6, 6);
+// 	// fmpz_mod_poly_set_coeff_ui(A, 5, 5);
+// 	// fmpz_mod_poly_set_coeff_ui(A, 4, 4);
+// 	// fmpz_mod_poly_set_coeff_ui(A, 3, 3);
+// 	fmpz_mod_poly_set_coeff_ui(A, 2, 2);
+// 	fmpz_mod_poly_set_coeff_ui(A, 1, 1);
+// 	fmpz_mod_poly_set_coeff_ui(A, 0, 2);
 	
 
-		//affichage des tableaux
-	printf("tab:\n");
-	for(int i=0;i<gf;i++){
-		printf("\n%d ----",i);
-		fmpz_mod_poly_print(tab[i]);
-		printf("  alpha 	i: ");
-		fmpz_print(ptoi[i]); 
-	}
-	printf("\n");
-
-
-	printf("message clair = ");
-	fmpz_mod_poly_print(A);
-	printf("\n");
-	printf("message chiffré = ");
-	fmpz_mod_poly_print(received);
-	printf("\n");
-	
-	/*********** Dechiffrement avec erreurs injectée ***********/
-	fmpz_mod_poly_t X;
-	fmpz_mod_poly_init(X,tmp);
-
-	// test pour t=3/4 gf16
-	// fmpz_mod_poly_set_coeff_ui(received, 12, 10);
-	// fmpz_mod_poly_set_coeff_ui(received, 11, 10);
-	// fmpz_mod_poly_set_coeff_ui(received, 10, 10);
-	// fmpz_mod_poly_set_coeff_ui(received, 9, 10); //test t=4
-
-	// test pour t=2  gf8
-	fmpz_mod_poly_set_coeff_ui(received, 5, 3);
-	fmpz_mod_poly_set_coeff_ui(received, 6, 3);
-
-
-
-	printf("\n");
-	printf("message avec erreurs =");
-	fmpz_mod_poly_print(received);
-	printf("\n");
-	//decode(X,received,16,6); //test t=3
-	//decode(X,received,8);// test t=4
-	decode(X,received,4);// test t=2
-	printf("Dechiffrement = ");
-	fmpz_mod_poly_print(X);
-	printf("\n");
-
-	fmpz_mod_poly_clear(received);
-	fmpz_mod_poly_clear(X);
-	fmpz_clear(tmp);
+// 	fmpz_mod_poly_t received;
+// 	fmpz_mod_poly_init(received,tmp);
+// 	// encrypt(received,A,3,45); //test t=3   //n utile ?
+// 	//encrypt(received,A,4,45); //test avec t=4
+// 	encrypt(received,A,2,9); //test avec t=2
 	
 
-}
+// 		//affichage des tableaux
+// 	printf("tab:\n");
+// 	for(long i=0;i<gf;i++){
+// 		printf("\n%d ----",i);
+// 		fmpz_mod_poly_print(tab[i]);
+// 		printf("  alpha 	i: ");
+// 		fmpz_print(ptoi[i]); 
+// 	}
+// 	printf("\n");
+
+
+// 	printf("message clair = ");
+// 	fmpz_mod_poly_print(A);
+// 	printf("\n");
+// 	printf("message chiffré = ");
+// 	fmpz_mod_poly_print(received);
+// 	printf("\n");
+	
+// 	/*********** Dechiffrement avec erreurs injectée ***********/
+// 	fmpz_mod_poly_t X;
+// 	fmpz_mod_poly_init(X,tmp);
+
+// 	// test pour t=3/4 gf16
+// 	// fmpz_mod_poly_set_coeff_ui(received, 12, 10);
+// 	// fmpz_mod_poly_set_coeff_ui(received, 11, 10);
+// 	// fmpz_mod_poly_set_coeff_ui(received, 10, 10);
+// 	// fmpz_mod_poly_set_coeff_ui(received, 9, 10); //test t=4
+
+// 	// test pour t=2  gf8
+// 	fmpz_mod_poly_set_coeff_ui(received, 5, 3);
+// 	fmpz_mod_poly_set_coeff_ui(received, 6, 3);
+
+
+
+// 	printf("\n");
+// 	printf("message avec erreurs =");
+// 	fmpz_mod_poly_print(received);
+// 	printf("\n");
+// 	//decode(X,received,16,6); //test t=3
+// 	//decode(X,received,8);// test t=4
+// 	decode(X,received,4);// test t=2
+// 	printf("Dechiffrement = ");
+// 	fmpz_mod_poly_print(X);
+// 	printf("\n");
+
+// 	fmpz_mod_poly_clear(received);
+// 	fmpz_mod_poly_clear(X);
+// 	fmpz_clear(tmp);
+	
+
+// }

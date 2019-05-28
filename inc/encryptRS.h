@@ -19,10 +19,10 @@
 
 void lookuptab();
 void findB(fmpz_mod_poly_t res,fmpz_mod_poly_t A,fmpz_mod_poly_t G);
-void gen_poly(fmpz_mod_poly_t G,int tt);
+void gen_poly(fmpz_mod_poly_t G,long tt);
 void setBinPoly(fmpz_mod_poly_t res,fmpz_t f);
 void mulPoly(fmpz_mod_poly_t res,fmpz_mod_poly_t op1, fmpz_mod_poly_t op2);
-void encrypt(fmpz_mod_poly_t res,fmpz_mod_poly_t m, int t,int n);
+void encrypt(fmpz_mod_poly_t res,	fmpz_mod_poly_t m, long t,long n);
 //void test_encryptRS();
 
 #endif
